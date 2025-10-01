@@ -64,18 +64,19 @@ https://github.com/libsdl-org/SDL/blob/SDL2/include/SDL_keycode.h
 */
 
 
+/*
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
 #define WINDOW_X 200
 #define WINDOW_Y 200
+*/
 
 
-/*
 #define SCREEN_WIDTH 1920
 #define SCREEN_HEIGHT 1080
 #define WINDOW_X 200
 #define WINDOW_Y 200
-*/
+
 
 struct BALL {
   double x;
@@ -89,6 +90,15 @@ struct BOX {
   int y;
   int width;
   int height;
+};
+
+/* mouse position and three mouse button states */
+struct MOUSE {
+  int x ;
+  int y ;
+  int button1;
+  int button2;
+  int button3;
 };
 
 
@@ -161,7 +171,13 @@ SDL_Surface* gHelloWorld = NULL;
 
 
 
+/*
+  
+https://dev.to/noah11012/using-sdl2-2d-accelerated-renderering-1kcb
 
+accelerated 2d rendering
+
+*/
 
 bool init()
 {
@@ -285,6 +301,17 @@ int run(){
 	  //Update the surface
 	  SDL_UpdateWindowSurface( gWindow );
 	  */
+
+	  /* lets have a mouse item - lets zero everything out ! */
+	  struct MOUSE mouse;
+	  mouse.x = 0;
+	  mouse.y = 0;
+	  mouse.button1 = 0;
+	  mouse.button2 = 0;
+	  mouse.button3 = 0;
+
+
+	  
 	  
 	  int flags = 0; // flags unused should be set to 0 ??
 	  int width = SCREEN_WIDTH; // 640 pixels wide
@@ -314,6 +341,13 @@ int run(){
 	  cairo_t *cr;
 	  cr = cairo_create (cairosurf);
 
+
+	  /* set font size */
+	  cairo_set_font_size(cr , (double) 20.0);
+	  
+
+	  
+	  
 	  /* moveable box on screen to respond to up down left right arrows */
 	  struct BOX box;
 	  box.x = 100;
@@ -643,8 +677,35 @@ int run(){
 			}*/
 		      
 		    }// SDL_WINDOW_RESIZE_EVENT
+		    else if( e.type == SDL_MOUSEMOTION ){
+		      //Get mouse position
+		      SDL_GetMouseState( &(mouse.x), &(mouse.y) );
 
-		}//while SDL_PollEvent 
+		    }
+		    else if (e.type == SDL_MOUSEBUTTONDOWN){
+		      int button_index = e.button.button;
+		      if (button_index == 1) {
+			mouse.button1 = 1;
+		      } else if (button_index == 2) {
+			mouse.button2 = 1;
+		      } else if (button_index == 3) {
+			mouse.button3 = 1;		
+		      }
+		      printf("mouse button down : %d %d %d \n",mouse.button1, mouse.button2 , mouse.button3);
+		    } 
+		    else if (e.type == SDL_MOUSEBUTTONUP ){
+		      int button_index = e.button.button;
+		      if (button_index == 1) {
+			mouse.button1 = 0;
+		      } else if (button_index == 2) {
+			mouse.button2 = 0;
+		      } else if (button_index == 3) {
+			mouse.button3 = 0;		
+		      }
+		      printf("mouse buttons released : %d %d %d \n",mouse.button1, mouse.button2 , mouse.button3);
+		    }
+    
+    		}//while SDL_PollEvent 
 
 
 		// Fill the window with a white rectangle
@@ -666,10 +727,42 @@ int run(){
 	  cairo_rectangle (cr, 0.25, 0.25, 0.5, 0.5);
 	  cairo_stroke (cr);
 
+	  
+	  // fill screen with black - a very tiny portion of screen -- a dot !
 	  cairo_set_source_rgb (cr, 0, 0, 0);
 	  cairo_rectangle (cr, 0.25, 0.25, 0.5, 0.5);
 	  cairo_fill (cr);
 
+
+	  // line from top left to mouse.x mouse.y -- so we can tell where mouse is
+	  /*
+	  cairo_set_source_rgb (cr, 0, 0, 0);
+	  cairo_set_line_width (cr, 1);
+	  cairo_move_to (cr, 0, 0);
+	  cairo_line_to (cr, mouse.x, mouse.y);
+	  cairo_stroke (cr);
+	  */
+	  {
+	    // draw a circle where mouse 'is'
+	    double angle1 = 0.0;
+	    double angle2 = 2.0 * M_PI;
+	    double radius = 20.0 ;
+	    double x = mouse.x;
+	    double y = mouse.y;
+	    cairo_set_source_rgb (cr, 255, 0, 0);
+	    cairo_arc (cr, x, y, radius, angle1, angle2);
+	    cairo_fill (cr);	    
+	  }
+
+	  
+	  // have some text on screen 
+	  cairo_set_source_rgb (cr, 0, 0, 0);
+	  cairo_move_to (cr, 100, 50);
+	  char message[100];
+	  sprintf(message, "mouse position %d %d",mouse.x ,mouse.y);
+	  cairo_show_text(cr , message );
+	  
+	  
 
 	  // hollow rectangle
 	  cairo_set_line_width (cr, 3);
