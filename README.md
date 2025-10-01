@@ -1,5 +1,69 @@
 # About
 
+Cairo-sdl contains 001-window is the most capable C example so far . 
+
+Has almost full keyboard capability , outside of key combinations trapped by window manager.
+
+Moving arrow keys controls a black box on the screen .
+
+The are a number of square balls on the screen behave like bouncing balls as in pong game . 
+
+Function keys understood , Shift , Control + Alt keys all understood left and right . 
+
+In C there is an array of keys if key goes down , event is processed and that key id sets 1 in a big struct . 
+
+when corresponding key is released , event is processed and that key id set to 0 again in the big struct.
+
+## Truetype fonts 
+
+Requires TTInit initialise TT routines 
+
+what do if required font is missing ?
+
+
+## Require Mouse Events 
+
+Mouse coordinates mouse movement X Y , mouse enter , mouse leave , mouse drag , drag drop if possible be nice capability
+
+## Cairo features
+
+## Common lisp integration
+
+## Guile scheme integration 
+
+what FFI is to be supported ? 
+
+## Guile drawing 
+
+suppose want to be able to draw , then guile will have to have a main loop
+
+be nice to have access to keyboard id's from guile , then we can tell what key is currently down , access to the 
+entire structure 
+
+## Guile Loop 1  - with corresponding COOP-REPL-SERVER
+
+A loop - 
+
+```
+(define *myglobal* 5)
+
+(define (loop)
+	(format #t "myglobal has value ~a~%" *myglobal*)
+	(coop-repl-server) ... 
+	(loop)
+```
+
+## attached to running guile by guile-connect
+
+then passing 
+
+```
+(set! *myglobal* 3)
+```
+
+should see corresponding change in original program , should now be printing 3 instead of 5 
+
+
 set of increasing complex programs for very basic user interface
 
 keyboard
@@ -9,7 +73,7 @@ bitmap images
 
 lacks polygon colouring - aka cairo library no ffi in guile yet.
 
-![Alt text](/images/Screenshot_2024-04-07_00-35-52.png?raw=true "after 12 steps can end up with something on screen")
+![Alt text](guile-sdl-tutorial/images/Screenshot_2024-04-07_00-35-52.png?raw=true "after 12 steps can end up with something on screen")
 
 
 decided to explore SDL2 using C language as i think there are some memory leaks in guile SDL2 package
