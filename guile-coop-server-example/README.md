@@ -1,5 +1,24 @@
 # Guile repl socket
 
+## Multiple clients 
+
+how do unix sockets work , is this what we are talking about 
+
+a named file , that acts like a unix socket ? 
+
+multiple clients , one server 
+
+Q - how do get interaction on computer but tied to a narrow user interaction window ?
+
+```
+cooperative multitasking ?
+coroutines ? 
+yield ?
+```
+
+
+
+
 ## The server
 
 ```
