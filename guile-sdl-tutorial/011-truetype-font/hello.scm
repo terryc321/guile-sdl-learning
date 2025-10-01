@@ -31,7 +31,7 @@ sdl - display an image loaded from another directory
 (use-modules ((sdl2 rect) #:prefix sdl2-rect:))
 
 (use-modules ((sdl2 ttf) #:prefix sdl2-ttf:)) ;; fonts
-(use-modules ((sdl2 mixer) #:prefix sdl2-mixer:)) ;; sound
+(use-modules ((sdl2 mixer) #:prefix sdl2-mixer:)) ;; sound - we dont use that here...
 (use-modules ((sdl2 image) #:prefix sdl2-image:)) ;; image stuff ??
 
 
