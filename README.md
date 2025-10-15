@@ -1,5 +1,8 @@
 # About
 
+[https://www.gnu.org/software/guile/manual/html_node/Extending-Dia.html]
+
+
 Cairo-sdl contains 001-window is the most capable C example so far . 
 
 Has almost full keyboard capability , outside of key combinations trapped by window manager.
