@@ -1,7 +1,12 @@
 # About
 
+how or why to extend dia program
+
 [https://www.gnu.org/software/guile/manual/html_node/Extending-Dia.html]
 
+how to structure guile application to manipulate Dia program
+
+[https://www.gnu.org/software/guile/manual/html_node/Dia-Structure.html]
 
 Cairo-sdl contains 001-window is the most capable C example so far . 
 
