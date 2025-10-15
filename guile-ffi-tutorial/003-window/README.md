@@ -1,5 +1,27 @@
 # guile ffi tutorial
 
+looks like cannot just put C include files together and expect an application because SDL uses macros extensively
+
+that means that SDL_Init is not even defined in the sdl2 shared library libSDL2.so
+
+so we have to have an sdl2 cairo c application and see how we can plug guile in as background
+
+then expose a couple of draw routines draw-rectangle , fill-rectangle that we can call from guile , but then how do we orchestrate everything ?
+
+
+
+```
+;; can i extend LTDL_LIBRARY_PATH at runtime ?
+;; LTDL_LIBRARY_PATH=./ guile
+(use-modules (system foreign-library))
+(load-foreign-library "libSDL2-2.0.so")
+(load-extension "libguile-sdl" "sdl_init")
+
+guile: symbol lookup error: ./libguile-sdl.so: undefined symbol: SDL_Init
+```
+
+
+
 1 create an SDL window , here just 640 x 480 window only
 2 close the window
 3 keep it open so the user can see it
