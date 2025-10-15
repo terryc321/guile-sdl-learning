@@ -1,11 +1,18 @@
+
+
 #include <stdio.h>
 #include <math.h>
 #include <stdbool.h>
 #include <time.h>
 
+// SDL2/SDL2.h defines SDL_Init
 #include <SDL2/SDL.h>
+
+
 #include <cairo/cairo.h>
+
 #include <libguile.h>
+
 
 // fixed window for now 
 #define SCREEN_WIDTH 640
@@ -26,13 +33,14 @@ scheme
  */
 
 //The window we'll be rendering to
-SDL_Window* gWindow = NULL;
+static SDL_Window* gWindow;
     
 //The surface contained by the window
-SDL_Surface* gScreenSurface = NULL;
+static SDL_Surface* gScreenSurface;
 
 //The image we will load and show on the screen
 //SDL_Surface* gHelloWorld = NULL;
+
 
 
 bool sdl_init(){
@@ -172,4 +180,15 @@ sdl-init
  */
 
 
+static void inner_main (void *closure, int argc, char **argv){
+  /* preparation */
+  silly_init();
+  /* enter the shell */
+  scm_shell (argc, argv);
+  /* after exit */
+}
 
+int main (int argc, char **argv){
+  scm_boot_guile (argc, argv, inner_main, 0);
+  return 0; /* never reached, see inner_main */
+}

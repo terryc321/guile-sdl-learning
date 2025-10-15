@@ -1,5 +1,87 @@
 # guile ffi tutorial
 
+# CLANG vs GCC
+
+gcc simply cannot compile without being babied over which parameters come first
+
+clang just slam everything together and it just works first time
+
+Makefile - simple
+
+```
+make && ./main
+```
+
+starts a guile repl
+
+```
+>(sdl-init)
+```
+
+we get a window open 640 x 480
+
+so thats a big step forward
+
+can we go back and put this as a library again , so we have the advantage of sdl-library , database-library etc
+as explained in guile manual
+
+
+
+
+
+# BIG PROBLEMS
+
+cannot now even compile a simple libguile example
+
+```
+/usr/bin/ld: sdl.c:(.text+0x16b): undefined reference to `scm_c_define_gsubr'
+/usr/bin/ld: sdl.c:(.text+0x190): undefined reference to `scm_c_define_gsubr'
+```
+
+## test.c + hello-guile.scm
+
+```
+#include <stdio.h>
+#include <libguile.h>
+
+SCM hello_from_guile(int argc, char ** argv) {
+
+    SCM guileHello;
+    scm_init_guile();
+
+    char code[] = "(display \"Hello from Guile! As simple function.\")";
+    char newline[] = "(newline)";
+
+    char filename[] = "scripts/helloGuile.scm";
+
+    scm_c_eval_string(code);
+    scm_c_eval_string(newline);
+
+    scm_c_primitive_load(filename);
+
+    guileHello = scm_variable_ref(scm_c_lookup("guile-hello"));
+    scm_call_0(guileHello);
+
+    return 0;
+}
+```
+
+try compile test.c with
+
+```
+gcc -o test `pkg-config --cflags guile-3.0` `pkg-config --libs guile-3.0` test.c
+```
+FAILED
+
+try this instead
+```
+gcc -shared -fPIC -o libtest.so `pkg-config --cflags guile-3.0` test.c
+```
+
+
+
+# 
+
 looks like cannot just put C include files together and expect an application because SDL uses macros extensively
 
 that means that SDL_Init is not even defined in the sdl2 shared library libSDL2.so
