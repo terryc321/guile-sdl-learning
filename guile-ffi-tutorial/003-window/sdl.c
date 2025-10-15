@@ -61,6 +61,8 @@ bool sdl_init(){
   return true;
 }
 
+
+
 SCM sdl_init_wrapper(){
   bool res = sdl_init();
   if (res){
@@ -163,6 +165,10 @@ truthy
 (one) => 1
 (two) => 2
 (three) => 3
+
+sdl-init
+(use-modules (system foreign-library))
+
  */
 
 
