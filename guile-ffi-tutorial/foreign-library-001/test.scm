@@ -204,12 +204,17 @@ $1 = 12
 
 
 
+(define (bad-test2 n)
+  (cond
+   ((> n 0)
+    (test)
+    (bad-test2 (- n 1)))
+   (#t #f)))
 
 
 (define (bad-test)
   "a very bad test indeed - repeatedly creates and destroys a window"
-  (test)
-  (bad-test))
+  (bad-test2 100))
 
 
 
