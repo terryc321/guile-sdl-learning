@@ -127,13 +127,15 @@
 ;; example
 ;; (string->pointer "my window")
 ;; will return an appropriate ? null terminated ? char* ?? for the guile string "my window"
-(define (test-sdl-create-window)
-  (let ((x 200)(y 200)(width 640)(height 480)
+
+;; convenience 
+(define (create-window title width height)
+  (let ((x 200)(y 200)
 	(flags (logior *constant-sdl-window-resizeable*
 		       *constant-sdl-window-allow-highdpi*
 		       *constant-sdl-window-always-on-top*
 		       *constant-sdl-window-shown*)))
-    (sdl-create-window (string->pointer "my window") x y width height flags)))
+    (sdl-create-window (string->pointer title) x y width height flags)))
 
 
 
@@ -177,6 +179,53 @@
                             #:arg-types (list '* )))
 
 
+;; usage
+;; int flags = 0; // flags unused should be set to 0 ??
+;; 	  int width = SCREEN_WIDTH; // 640 pixels wide
+;; 	  int height = SCREEN_HEIGHT; // 480 pixels high
+;; 	  int depth = 32; // 32 bits - cairo only understands 32 bits
+;; 	  SDL_Surface *sdlsurf = SDL_CreateRGBSurface (
+;; 						       flags, width, height, depth,
+;; 						       0x00FF0000, /* Rmask */
+;; 						       0x0000FF00, /* Gmask */
+;; 						       0x000000FF, /* Bmask */
+;; 						       0); /* Amask */
+(define sdl-create-rgb-surface 
+  (foreign-library-function "libSDL2" "SDL_CreateRGBSurface"
+                            #:return-type '*
+                            #:arg-types (list int int int int int int int int )))
+
+;; convenience function
+(define (create-rgb-surface width height)
+  (let ((flags 0) ;;unused
+	(depth 32) ;; only depth SDL and CAIRO agree on
+	(rmask #x00FF0000) ;; red mask
+	(gmask #x0000FF00) ;; green mask
+	(bmask #x000000FF) ;; blue mask
+	(amask #x0)) ;; alpha mask - unused	
+    (sdl-create-rgb-surface flags width height depth rmask gmask bmask amask)))
+
+  
+
+#|
+cairo_surface_t *cairosurf = cairo_image_surface_create_for_data (
+									    (unsigned char*)sdlsurf->pixels,
+									    CAIRO_FORMAT_RGB24,
+									    sdlsurf->w,
+									    sdlsurf->h,
+									    sdlsurf->pitch);
+	  
+|#
+
+(define *constant-cairo-format-rgb24* 1)
+
+(define cairo-image-surface-create-for-data
+  (foreign-library-function "libcairo" "cairo_image_surface_create_for_data "
+                            #:return-type '*
+                            #:arg-types (list '* int int int int)))
+
+
+
 
 
 #|
@@ -190,16 +239,32 @@ $1 = 12
 
 |#
 
+
+
 (define (test)
-  (test-sdl-init)
-  (define gWindow (test-sdl-create-window))
-  (define gSurface (sdl-get-window-surface gWindow))
-  ;;(define gHelloBitmap (sdl-load-bmp "../thompson-sdl2/hello-world/hello.bmp"))
-  (define gHelloBitmap #f)
-  (format #t "~a~%" (list gWindow gSurface gHelloBitmap))
-  ;; cleanup
-  (sdl-destroy-window gWindow)
-  (sdl-quit))
+  (let ((width 640)(height 480))
+    (test-sdl-init)
+    (define gWindow (create-window "hello world" width height)) ;; make 640 x 480 window
+    (define gSurface (sdl-get-window-surface gWindow))
+    ;;(define gHelloBitmap (sdl-load-bmp "../thompson-sdl2/hello-world/hello.bmp"))
+    (define gHelloBitmap #f)
+    (define gSurface2 (create-rgb-surface 640 480)) ;; same as window dimensions
+    (define gCairoSurf (cairo-image-surface-create-for-data pixels??
+							    *constant-cairo-format-rgb24*
+							    width
+							    height
+							    pitch))
+    
+    
+    
+    (format #t "~a~%" (list gWindow gSurface gHelloBitmap gSurface2))
+    ;;
+    (sleep 10)
+    ;; cleanup
+    (sdl-destroy-window gWindow)
+    (sdl-quit)))
+
+
 
 
 
