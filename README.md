@@ -1,5 +1,27 @@
 # About
 
+The scope of this repo is to make an SDL2 library that does not leak memory
+
+tried using guile-3.0 to do this as a loadable shared library , but stalled on SDL_Init
+
+suspect that SDL_Init is a C language macro which does not therefore generate a runtime symbol in the dynamic library
+
+* also useful is to use CLANG compiler as it accepts compilation flags easier than the crusty GCC , also CLANG is likely to work
+whereas GCC may be buggy , unless we can get hold of the german GCC with specific patches applied
+
+## SDL2
+
+david thompson [https://dthompson.us/projects/guile-sdl2.html] has a guile library for sdl2
+
+from memory of using the library there is a memory leak issue which causes the computer system to eventually become unstable
+
+it shows that sdl2 can be incorporated as a library , although on my initial attempts the c macro from SDL2/SDL.h namely SDL_Init
+
+cannot be found
+
+# other documentation
+
+
 how or why to extend dia program
 
 [https://www.gnu.org/software/guile/manual/html_node/Extending-Dia.html]
