@@ -144,6 +144,13 @@
                             #:arg-types (list '* )))
 
 
+(define sdl-quit
+  (foreign-library-function "libSDL2" "SDL_Quit"
+                            #:return-type void
+                            #:arg-types '()))
+
+
+
 ;; usage
 ;;  gHelloWorld = SDL_LoadBMP( "hello_world2.bmp" );
 ;; <<< This does not work as SDL_LoadBMP is a C macro and has no binding that guile can find in the SDL2 library >>>
@@ -191,10 +198,16 @@ $1 = 12
   (define gHelloBitmap #f)
   (format #t "~a~%" (list gWindow gSurface gHelloBitmap))
   ;; cleanup
-  (sdl-destroy-window gWindow))
+  (sdl-destroy-window gWindow)
+  (sdl-quit))
+
+
+
+
 
 
 (define (bad-test)
+  "a very bad test indeed - repeatedly creates and destroys a window"
   (test)
   (bad-test))
 
