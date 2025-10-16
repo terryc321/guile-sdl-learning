@@ -1,0 +1,12 @@
+
+;; cairo.ffi
+;; > guild compile-ffi ffi/cairo.ffi
+;; requires installing nyacc
+;; > sudo apt install nyacc
+
+
+(define-ffi-module (ffi cairo)
+  #:pkg-config "cairo"
+  #:include '("cairo.h" "cairo-pdf.h" "cairo-svg.h"))
+
+

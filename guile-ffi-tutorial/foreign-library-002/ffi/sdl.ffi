@@ -1,0 +1,18 @@
+
+;; sdl.ffi
+
+;; run from level above ffi directory itself - files will be generated in the ffi directory
+;; > guild compile-ffi ffi/sdl.ffi
+;; requires installing nyacc
+;; > sudo apt install nyacc
+
+
+(define-ffi-module (ffi sdl)
+  #:pkg-config "sdl2"
+  #:include '("SDL2/SDL.h" ))
+
+
+
+
+
+
