@@ -1,5 +1,17 @@
 # About
 
+## guile ffi sdl + cairo attempt
+see the working code so far [here](guile-ffi-tutorial/foreign-library-001/test.scm)
+
+## why
+
+tried guile-sdl from david thompson and found i was getting several large memory leaks ,
+also wanted to try to understand event loop in guile scheme
+
+
+
+
+
 The scope of this repo is to make an SDL2 library that does not leak memory
 
 tried using guile-3.0 to do this as a loadable shared library , but stalled on SDL_Init
