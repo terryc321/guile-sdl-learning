@@ -9,7 +9,7 @@
     (clear-renderer ren)
     (render-copy ren texture)
     (present-renderer ren)
-    (sleep 2)))
+    (sleep 20)))
 
 (sdl-init)
 
