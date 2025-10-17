@@ -4,6 +4,13 @@
 (use-modules (system foreign))
 (use-modules (system foreign-library))
 
+;; byte vectors for foreign structure creation ?
+(use-modules (rnrs bytevectors))
+
+;; this may or may not be a correct definition of null 
+(define *null* (make-pointer 0))
+
+
 ;; from /usr/include/SDL2/SDL.h
 ;; although C macro 0x0000u  the u means unsigned ??
 ;;
@@ -152,14 +159,41 @@
                             #:arg-types '()))
 
 
+;; void SDL_FreeSurface(SDL_Surface * surface)
+(define sdl-free-surface
+  (foreign-library-function "libSDL2" "SDL_FreeSurface"
+                            #:return-type void
+                            #:arg-types (list '*)))
 
-;; usage
-;;  gHelloWorld = SDL_LoadBMP( "hello_world2.bmp" );
-;; <<< This does not work as SDL_LoadBMP is a C macro and has no binding that guile can find in the SDL2 library >>>
-;; (define sdl-load-bmp
-;;   (foreign-library-function "libSDL2" "SDL_LoadBMP"
-;;                             #:return-type '*
-;;                             #:arg-types (list '* )))
+
+
+;;SDL_Surface* SDL_LoadBMP_RW(SDL_RWops * src, int freesrc);
+(define sdl-load-bmp-rw
+  (foreign-library-function "libSDL2" "SDL_LoadBMP_RW"
+                            #:return-type '*
+                            #:arg-types (list '* int)))
+
+
+;; SDL_RWops* SDL_RWFromFile(const char *file, const char *mode);
+(define sdl-rw-from-file
+  ;; " guile ffi need string->pointer "
+  (foreign-library-function "libSDL2" "SDL_RWFromFile"
+                            #:return-type '*
+                            #:arg-types (list '* '*)))
+
+
+;; #define SDL_LoadBMP(file)   SDL_LoadBMP_RW(SDL_RWFromFile(file, "rb"), 1)
+(define (sdl-load-bmp filename)
+  "SDL_LoadBMP is a macro in C land
+ becomes two required routines
+ SDL_RWFromFile(file, \"rb\")
+ SDL_LoadBMP_RW
+ "
+  (sdl-load-bmp-rw (sdl-rw-from-file (string->pointer filename) (string->pointer "rb")) 1))
+
+
+
+
 
 
 ;; nm -D /usr/lib/x86_64-linux-gnu/libSDL2.so | grep SDL_LoadBMP
@@ -205,7 +239,31 @@
 	(amask #x0)) ;; alpha mask - unused	
     (sdl-create-rgb-surface flags width height depth rmask gmask bmask amask)))
 
-  
+
+
+;; guile (use-modules (system foreign)) exposes typical C types uint8 uint32 etc..
+;; assuming NULL is just 0
+;; Uint32 SDL_MapRGB(const SDL_PixelFormat * format,  Uint8 r, Uint8 g, Uint8 b);
+(define sdl-map-rgb
+  (foreign-library-function "libSDL2" "SDL_MapRGB"
+                            #:return-type uint32
+                            #:arg-types (list '* uint8 uint8 uint8)))
+
+
+;; int SDL_FillRect (SDL_Surface * dst, const SDL_Rect * rect, Uint32 color);
+;; returns 0 on success
+(define sdl-fill-rect
+  (foreign-library-function "libSDL2" "SDL_FillRect"
+			    #:return-type int
+                            #:arg-types (list '* '* uint32)))
+
+
+;; int SDL_UpdateWindowSurface(SDL_Window * window);
+(define sdl-update-window-surface
+  (foreign-library-function "libSDL2" "SDL_UpdateWindowSurface"
+			    #:return-type int
+                            #:arg-types (list '*)))
+
 
 #|
 cairo_surface_t *cairosurf = cairo_image_surface_create_for_data (
@@ -215,54 +273,481 @@ cairo_surface_t *cairosurf = cairo_image_surface_create_for_data (
 									    sdlsurf->h,
 									    sdlsurf->pitch);
 	  
+
+#define SDL_BlitSurface SDL_UpperBlit
+int SDL_UpperBlit
+    (SDL_Surface * src, const SDL_Rect * srcrect,
+     SDL_Surface * dst, SDL_Rect * dstrect);
+
 |#
+(define sdl-blit-surface 
+  (foreign-library-function "libSDL2" "SDL_UpperBlit"
+			    #:return-type int
+                            #:arg-types (list '* '* '* '*)))
+
+
+
+
 
 (define *constant-cairo-format-rgb24* 1)
 
 (define cairo-image-surface-create-for-data
-  (foreign-library-function "libcairo" "cairo_image_surface_create_for_data "
+  (foreign-library-function "libcairo" "cairo_image_surface_create_for_data"
                             #:return-type '*
                             #:arg-types (list '* int int int int)))
 
 
+(define cairo-rectangle
+  (foreign-library-function "libcairo" "cairo_rectangle"
+                            #:return-type void
+                            #:arg-types (list '* int int int int)))
+
+(define cairo-set-source-rgb
+  (foreign-library-function "libcairo" "cairo_set_source_rgb"
+                            #:return-type void
+                            #:arg-types (list '* double double double)))
 
 
+
+
+;;
+;; cairo_t *cairo_create( cairo_surface_t *)
+;; cairo_t is cairo context
+;; cairo_surface_t is a surface compatible with cairo 24 bit 
+(define cairo-create
+  (foreign-library-function "libcairo" "cairo_create"
+                            #:return-type '*
+                            #:arg-types (list '*)))
+
+
+(define cairo-fill
+  (foreign-library-function "libcairo" "cairo_fill"
+                            #:return-type void
+                            #:arg-types (list '*)))
+
+
+;;void cairo_surface_flush (cairo_surface_t *surface);
+(define cairo-surface-flush
+  (foreign-library-function "libcairo" "cairo_surface_flush"
+                            #:return-type void
+                            #:arg-types (list '*)))
+
+
+
+;; --- put an image on the screen
+;; wait 5 seconds then cleanup
+(define (skooldaze)
+  (let ((width 1024)(height 768))
+    (sdl-init *constant-sdl-init-video*)
+    (define window (create-window "hello world" width height))
+    (define surface (sdl-get-window-surface window))
+    (define hello-bitmap (sdl-load-bmp "hello.bmp"))
+    ;; apply image
+    (sdl-blit-surface hello-bitmap *null* surface *null*)
+    ;; update surface
+    (sdl-update-window-surface window) 
+    ;; wait
+    (sleep 5)
+    ;; cleanup
+    (sdl-free-surface hello-bitmap)
+    (sdl-destroy-window window)
+    (sdl-quit)))
+
+
+;; int SDL_PollEvent(SDL_Event * event);
+(define sdl-poll-event
+  (foreign-library-function "libSDL2" "SDL_PollEvent"
+			    #:return-type int
+                            #:arg-types (list '*)))
 
 #|
-https://www.nongnu.org/nyacc/ffi-help.html
-guile> (use-modules (system foreign))
-guile> (define strlen
-          (pointer->procedure
-           int (dynamic-func "strlen" (dynamic-link)) (list '*)))
-guile> (strlen (string->pointer "hello, world"))
-$1 = 12
+typedef union SDL_Event
+{
+    Uint32 type;                            /**< Event type, shared with all events */
+    SDL_CommonEvent common;                 /**< Common event data */
+    SDL_DisplayEvent display;               /**< Display event data */
+    SDL_WindowEvent window;                 /**< Window event data */
+    SDL_KeyboardEvent key;                  /**< Keyboard event data */
+    SDL_TextEditingEvent edit;              /**< Text editing event data */
+    SDL_TextEditingExtEvent editExt;        /**< Extended text editing event data */
+    SDL_TextInputEvent text;                /**< Text input event data */
+    SDL_MouseMotionEvent motion;            /**< Mouse motion event data */
+    SDL_MouseButtonEvent button;            /**< Mouse button event data */
+    SDL_MouseWheelEvent wheel;              /**< Mouse wheel event data */
+    SDL_JoyAxisEvent jaxis;                 /**< Joystick axis event data */
+    SDL_JoyBallEvent jball;                 /**< Joystick ball event data */
+    SDL_JoyHatEvent jhat;                   /**< Joystick hat event data */
+    SDL_JoyButtonEvent jbutton;             /**< Joystick button event data */
+    SDL_JoyDeviceEvent jdevice;             /**< Joystick device change event data */
+    SDL_JoyBatteryEvent jbattery;           /**< Joystick battery event data */
+    SDL_ControllerAxisEvent caxis;          /**< Game Controller axis event data */
+    SDL_ControllerButtonEvent cbutton;      /**< Game Controller button event data */
+    SDL_ControllerDeviceEvent cdevice;      /**< Game Controller device event data */
+    SDL_ControllerTouchpadEvent ctouchpad;  /**< Game Controller touchpad event data */
+    SDL_ControllerSensorEvent csensor;      /**< Game Controller sensor event data */
+    SDL_AudioDeviceEvent adevice;           /**< Audio device event data */
+    SDL_SensorEvent sensor;                 /**< Sensor event data */
+    SDL_QuitEvent quit;                     /**< Quit request event data */
+    SDL_UserEvent user;                     /**< Custom event data */
+    SDL_SysWMEvent syswm;                   /**< System dependent window event data */
+    SDL_TouchFingerEvent tfinger;           /**< Touch finger event data */
+    SDL_MultiGestureEvent mgesture;         /**< Gesture event data */
+    SDL_DollarGestureEvent dgesture;        /**< Gesture event data */
+    SDL_DropEvent drop;                     /**< Drag and drop event data */
+
+    /* This is necessary for ABI compatibility between Visual C++ and GCC.
+       Visual C++ will respect the push pack pragma and use 52 bytes (size of
+       SDL_TextEditingEvent, the largest structure for 32-bit and 64-bit
+       architectures) for this union, and GCC will use the alignment of the
+       largest datatype within the union, which is 8 bytes on 64-bit
+       architectures.
+
+       So... we'll add padding to force the size to be 56 bytes for both.
+
+       On architectures where pointers are 16 bytes, this needs rounding up to
+       the next multiple of 16, 64, and on architectures where pointers are
+       even larger the size of SDL_UserEvent will dominate as being 3 pointers.
+    */
+    Uint8 padding[sizeof(void *) <= 8 ? 56 : sizeof(void *) == 16 ? 64 : 3 * sizeof(void *)];
+} SDL_Event;
+
+how do i make a foreign struct ?
+https://www.gnu.org/software/guile/manual/html_node/Foreign-Structs.html
+
+typedef enum SDL_EventType
+{
+    SDL_FIRSTEVENT     = 0,     /**< Unused (do not remove) */
+
+    /* Application events */
+    SDL_QUIT           = 0x100, /**< User-requested quit  remember {{ guile scheme #x100 is same as 0x100 C language }} */
+
+    /* These application events have special meaning on iOS, see README-ios.md for details */
+    SDL_APP_TERMINATING,        /**< The application is being terminated by the OS
+                                     Called on iOS in applicationWillTerminate()
+                                     Called on Android in onDestroy()
+                                */
+    SDL_APP_LOWMEMORY,          /**< The application is low on memory, free memory if possible.
+                                     Called on iOS in applicationDidReceiveMemoryWarning()
+                                     Called on Android in onLowMemory()
+                                */
+    SDL_APP_WILLENTERBACKGROUND, /**< The application is about to enter the background
+                                     Called on iOS in applicationWillResignActive()
+                                     Called on Android in onPause()
+                                */
+    SDL_APP_DIDENTERBACKGROUND, /**< The application did enter the background and may not get CPU for some time
+                                     Called on iOS in applicationDidEnterBackground()
+                                     Called on Android in onPause()
+                                */
+    SDL_APP_WILLENTERFOREGROUND, /**< The application is about to enter the foreground
+                                     Called on iOS in applicationWillEnterForeground()
+                                     Called on Android in onResume()
+                                */
+    SDL_APP_DIDENTERFOREGROUND, /**< The application is now interactive
+                                     Called on iOS in applicationDidBecomeActive()
+                                     Called on Android in onResume()
+                                */
+
+    SDL_LOCALECHANGED,  /**< The user's locale preferences have changed. */
+
+    /* Display events */
+    SDL_DISPLAYEVENT   = 0x150,  /**< Display state change */
+
+    /* Window events */
+    SDL_WINDOWEVENT    = 0x200, /**< Window state change */
+    SDL_SYSWMEVENT,             /**< System specific event */
+
+    /* Keyboard events */
+    SDL_KEYDOWN        = 0x300, /**< Key pressed */
+    SDL_KEYUP,                  /**< Key released */
+    SDL_TEXTEDITING,            /**< Keyboard text editing (composition) */
+    SDL_TEXTINPUT,              /**< Keyboard text input */
+    SDL_KEYMAPCHANGED,          /**< Keymap changed due to a system event such as an
+                                     input language or keyboard layout change.
+                                */
+    SDL_TEXTEDITING_EXT,       /**< Extended keyboard text editing (composition) */
+
+    /* Mouse events */
+    SDL_MOUSEMOTION    = 0x400, /**< Mouse moved */
+    SDL_MOUSEBUTTONDOWN,        /**< Mouse button pressed */
+    SDL_MOUSEBUTTONUP,          /**< Mouse button released */
+    SDL_MOUSEWHEEL,             /**< Mouse wheel motion */
+
+    /* Joystick events */
+    SDL_JOYAXISMOTION  = 0x600, /**< Joystick axis motion */
+    SDL_JOYBALLMOTION,          /**< Joystick trackball motion */
+    SDL_JOYHATMOTION,           /**< Joystick hat position change */
+    SDL_JOYBUTTONDOWN,          /**< Joystick button pressed */
+    SDL_JOYBUTTONUP,            /**< Joystick button released */
+    SDL_JOYDEVICEADDED,         /**< A new joystick has been inserted into the system */
+    SDL_JOYDEVICEREMOVED,       /**< An opened joystick has been removed */
+    SDL_JOYBATTERYUPDATED,      /**< Joystick battery level change */
+
+    /* Game controller events */
+    SDL_CONTROLLERAXISMOTION  = 0x650, /**< Game controller axis motion */
+    SDL_CONTROLLERBUTTONDOWN,          /**< Game controller button pressed */
+    SDL_CONTROLLERBUTTONUP,            /**< Game controller button released */
+    SDL_CONTROLLERDEVICEADDED,         /**< A new Game controller has been inserted into the system */
+    SDL_CONTROLLERDEVICEREMOVED,       /**< An opened Game controller has been removed */
+    SDL_CONTROLLERDEVICEREMAPPED,      /**< The controller mapping was updated */
+    SDL_CONTROLLERTOUCHPADDOWN,        /**< Game controller touchpad was touched */
+    SDL_CONTROLLERTOUCHPADMOTION,      /**< Game controller touchpad finger was moved */
+    SDL_CONTROLLERTOUCHPADUP,          /**< Game controller touchpad finger was lifted */
+    SDL_CONTROLLERSENSORUPDATE,        /**< Game controller sensor was updated */
+    SDL_CONTROLLERUPDATECOMPLETE_RESERVED_FOR_SDL3,
+    SDL_CONTROLLERSTEAMHANDLEUPDATED,  /**< Game controller Steam handle has changed */
+
+    /* Touch events */
+    SDL_FINGERDOWN      = 0x700,
+    SDL_FINGERUP,
+    SDL_FINGERMOTION,
+
+    /* Gesture events */
+    SDL_DOLLARGESTURE   = 0x800,
+    SDL_DOLLARRECORD,
+    SDL_MULTIGESTURE,
+
+    /* Clipboard events */
+    SDL_CLIPBOARDUPDATE = 0x900, /**< The clipboard or primary selection changed */
+
+    /* Drag and drop events */
+    SDL_DROPFILE        = 0x1000, /**< The system requests a file open */
+    SDL_DROPTEXT,                 /**< text/plain drag-and-drop event */
+    SDL_DROPBEGIN,                /**< A new set of drops is beginning (NULL filename) */
+    SDL_DROPCOMPLETE,             /**< Current set of drops is now complete (NULL filename) */
+
+    /* Audio hotplug events */
+    SDL_AUDIODEVICEADDED = 0x1100, /**< A new audio device is available */
+    SDL_AUDIODEVICEREMOVED,        /**< An audio device has been removed. */
+
+    /* Sensor events */
+    SDL_SENSORUPDATE = 0x1200,     /**< A sensor was updated */
+
+    /* Render events */
+    SDL_RENDER_TARGETS_RESET = 0x2000, /**< The render targets have been reset and their contents need to be updated */
+    SDL_RENDER_DEVICE_RESET, /**< The device has been reset and all textures need to be recreated */
+
+    /* Internal events */
+    SDL_POLLSENTINEL = 0x7F00, /**< Signals the end of an event poll cycle */
+
+    /** Events SDL_USEREVENT through SDL_LASTEVENT are for your use,
+     *  and should be allocated with SDL_RegisterEvents()
+     */
+    SDL_USEREVENT    = 0x8000,
+
+    /**
+     *  This last event is only for bounding internal arrays
+     */
+    SDL_LASTEVENT    = 0xFFFF
+} SDL_EventType;
+
+typedef struct SDL_MouseMotionEvent
+{
+    Uint32 type;        /**< SDL_MOUSEMOTION */
+    Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
+    Uint32 windowID;    /**< The window with mouse focus, if any */
+    Uint32 which;       /**< The mouse instance id, or SDL_TOUCH_MOUSEID */
+    Uint32 state;       /**< The current button state */
+    Sint32 x;           /**< X coordinate, relative to window */
+    Sint32 y;           /**< Y coordinate, relative to window */
+    Sint32 xrel;        /**< The relative motion in the X direction */
+    Sint32 yrel;        /**< The relative motion in the Y direction */
+} SDL_MouseMotionEvent;
+
+offsets into SDL_MouseMotionEvent using C language offsetof from #include<stddef.h>  printed as %zu
+example
+  fprintf(stdout, "MouseMotionEvent . type : %zu \n" , offsetof("SDL_MouseMotionEvent","type"));
+
+guile scheme equivalents - mainly for most lisp languages
+
+bytevector-u32-ref is unsigned 32 bit reference to foreign struct _ at byte offset _ with endianness _
+bytevector-s32-ref is signed 32 bit reference to foreign struct _ at byte offset _ with endianness _
+ 
+
+MOUSEMOTIONEVENT type : 0           bytevector-u32-ref event 0 (endianness little))
+MOUSEMOTIONEVENT timestamp : 4      bytevector-u32-ref event 4 (endianness little))
+MOUSEMOTIONEVENT windowid : 8       bytevector-u32-ref event 8 (endianness little))
+MOUSEMOTIONEVENT which : 12         bytevector-u32-ref event 12 (endianness little))
+MOUSEMOTIONEVENT state : 16         bytevector-u32-ref event 16 (endianness little))
+
+MOUSEMOTIONEVENT x : 20             bytevector-s32-ref event 20 (endianness little))
+MOUSEMOTIONEVENT y : 24             bytevector-s32-ref event 24 (endianness little))
+MOUSEMOTIONEVENT xrel : 28          bytevector-s32-ref event 28 (endianness little))
+MOUSEMOTIONEVENT yrel : 32          bytevector-s32-ref event 32 (endianness little))
+
+(let ((type (bytevector-u32-ref event 0 (endianness little)))
+      (timestamp (bytevector-u32-ref event 4 (endianness little)))
+      (windowid (bytevector-u32-ref event 8 (endianness little)))
+      (state (bytevector-u32-ref event 12 (endianness little)))
+      (x (bytevector-s32-ref event 20 (endianness little)))
+      (y (bytevector-s32-ref event 24 (endianness little)))
+      (xrel (bytevector-s32-ref event 28 (endianness little)))
+      (yrel (bytevector-s32-ref event 32 (endianness little))))
+  ...)
 
 |#
 
 
 
+(define *constant-sdl-quit* #x100)
+(define *constant-sdl-keydown* #x300)
+(define *constant-sdl-keyup* #x301)
+(define *constant-sdl-mousemotion* #x400)
+
+
+
+
+;; keep looping until user quits window
+;; https://lazyfoo.net/tutorials/SDL/03_event_driven_programming/index.php
+(define (skooldaze2)
+  (let ((width 1024)(height 768))
+    (sdl-init *constant-sdl-init-video*)
+    (define window (create-window "hello world" width height))
+    (define surface (sdl-get-window-surface window))
+    (define hello-bitmap (sdl-load-bmp "hello.bmp"))
+    (define quit #f)
+    ;; poll
+    ;; create a C union struct the size of SDL_Event
+    ;; and then manually populate struct obviating advantages of
+    ;; make SDL_Event which is 32 bytes in size
+    (define event (let ((size 36)(fill 0))
+		    (make-bytevector size fill)))
+    
+    
+    (while (not quit)
+	   ;; poll for an event
+	   (while (not (= 0 (sdl-poll-event (bytevector->pointer event))))
+		  ;; if was new event then {event} itself will have the contents of it
+		  ;; (endianness big)
+		  ;; (endianness little)
+		  (let ((type (bytevector-u32-ref event 0 (endianness little))))
+		    (cond
+		     ((= type *constant-sdl-quit*) ;; ======== quit event ==================
+		      (format #t "the user quit the application !~%")
+		      ;; if we quit - set quit flag to true and exit
+		      (let ((type (bytevector-u32-ref event 0 (endianness little)))
+			    (timestamp (bytevector-u32-ref event 4 (endianness little))))
+			(set! quit #t)))
+		     ((= type *constant-sdl-keydown*) ;; ======== keydown event ==================
+		      (format #t "the user pressed a key !~%"))
+		     ((= type *constant-sdl-keyup*) ;; ======== keyup event ==================
+		      (format #t "the user released a key !~%"))
+		     ((= type *constant-sdl-mousemotion*) ;; ======== mouse motion event ==================
+		      (let ((type (bytevector-u32-ref event 0 (endianness little)))
+			    (timestamp (bytevector-u32-ref event 4 (endianness little)))
+			    (windowid (bytevector-u32-ref event 8 (endianness little)))
+			    (state (bytevector-u32-ref event 12 (endianness little)))
+			    (x (bytevector-s32-ref event 20 (endianness little)))
+			    (y (bytevector-s32-ref event 24 (endianness little)))
+			    (xrel (bytevector-s32-ref event 28 (endianness little)))
+			    (yrel (bytevector-s32-ref event 32 (endianness little))))
+			(format #t "mouse move (~a ~a ~a ~a " type timestamp windowid state)
+			(format #t " (pos:~a ~a) (rel:~a ~a) ~%" x y xrel yrel)))
+		     (#t #f))))
+		  
+	   ;; apply image
+	   (sdl-blit-surface hello-bitmap *null* surface *null*)
+	   ;; update surface
+	   (sdl-update-window-surface window)
+	   ) ;; while not quit 
+    ;; cleanup
+    (sdl-free-surface hello-bitmap)
+    (sdl-destroy-window window)
+    (sdl-quit)))
+
+
+
+
+
+
+    
+    
+    
+
+
 (define (test)
   (let ((width 640)(height 480))
-    (test-sdl-init)
-    (define gWindow (create-window "hello world" width height)) ;; make 640 x 480 window
-    (define gSurface (sdl-get-window-surface gWindow))
-    ;;(define gHelloBitmap (sdl-load-bmp "../thompson-sdl2/hello-world/hello.bmp"))
-    (define gHelloBitmap #f)
-    (define gSurface2 (create-rgb-surface 640 480)) ;; same as window dimensions
-    (define gCairoSurf (cairo-image-surface-create-for-data pixels??
+    (let ((res (sdl-init *constant-sdl-init-video*)))
+      (when (not (= res 0))
+	(format #t "sdl-init failed with error ~a~%" res)
+	(error "sdl-init fail")))
+    
+    (define window (create-window "hello world" width height)) ;; make 640 x 480 window
+    (format #t "window was ~a~%" window)
+    
+    (define gSurface (sdl-get-window-surface window))
+    (define gHelloBitmap (sdl-load-bmp "hello.bmp"))
+    (format #t "hello bitmap was ~a~%" gHelloBitmap)
+
+    ;; apply the image
+    (sdl-blit-surface gHelloBitmap *null* gSurface *null*)
+
+    ;; update surface
+    (sdl-update-window-surface window) 
+    
+    (sleep 5)
+    ;; that works !!
+
+    
+
+    ;;(define gHelloBitmap #f)
+    ;;(define gSurface2 (create-rgb-surface 640 480)) ;; same as window dimensions
+
+    ;; 8 bytes past SDL_Surface *p is p->format
+    (define gSurface->format (make-pointer (+ (pointer-address gSurface) 8)))
+    ;; 32 bytes past SDL_Surface *p is p->pixels
+    (define gSurface->pixels (make-pointer (+ (pointer-address gSurface) 32)))
+
+    ;; pitch is pixels wide multiplied by 3 colours each take 4 bytes per colour ??? this is my guess so far
+    (define pitch (* width 3 4))
+    
+    (define gCairoSurf (cairo-image-surface-create-for-data gSurface->pixels
 							    *constant-cairo-format-rgb24*
 							    width
 							    height
 							    pitch))
     
-    
-    
-    (format #t "~a~%" (list gWindow gSurface gHelloBitmap gSurface2))
+    (format #t "~a~%" (list window gSurface gSurface->pixels gCairoSurf))
+
+    ;; cr cairo context
+    (define cr (cairo-create gCairoSurf))
+    (format #t "~a~%" (list cr))
     ;;
-    (sleep 10)
+
+    ;; FIXME - white pixel not working yet
+    ;; (define white-pixel (sdl-map-rgb gSurface2->format 255 255 255))
+    ;; (format #t "white pixel ~a ~%" white-pixel)
+    
+    ;;// Fill the window with a white rectangle
+    ;;SDL_FillRect( sdlsurf, NULL, SDL_MapRGB( sdlsurf->format, 255, 255, 255 ) );
+    ;; what is NULL is guile ffi ?
+    ;; (let ((result (sdl-fill-rect gSurface2 null pixel-value)))
+    ;;   (cond
+    ;;    ((= 0 result) (format #t "fill rect ok~%"))
+    ;;    (#t (format #t "fill rect bad~%"))))
+
+
+    ;; TODO
+    (cairo-set-source-rgb cr 255 0 0)
+    (cairo-rectangle cr 100 100 200 200)
+    (cairo-fill cr)
+
+
+    ;;SDL_BlitSurface( sdlsurf , NULL, gScreenSurface, NULL );
+    ;;(sdl-blit-surface gSurface2 *null* gSurface *null*)
+    ;;(sdl-blit-surface gSurface2 *null* gSurface *null*)    
+    (cairo-surface-flush gCairoSurf)
+     
+    ;; SDL_UpdateWindowSurface( window );
+    (sdl-update-window-surface window) 
+    
+    ;;
+    (sleep 3)
     ;; cleanup
-    (sdl-destroy-window gWindow)
+    (sdl-destroy-window window)
     (sdl-quit)))
+
+
+
 
 
 
@@ -351,7 +836,6 @@ $1 = 12
 (define init (foreign-library-pointer "bessel" "init_math_bessel"))
 
 
-#|
 can we find a symbol SDL_Init which is defined in SDL2/SDL.h
 
 we can find the files associated with SDL2
@@ -374,7 +858,20 @@ nm -D /usr/lib/x86_64-linux-gnu/libSDL2-2.0.so.0.3000.0 | grep SDL_Init
 nm -D /usr/lib/x86_64-linux-gnu/libSDL2.so | grep SDL_Init
 
 
-|#
+
+
+
+
+https://www.nongnu.org/nyacc/ffi-help.html
+guile> (use-modules (system foreign))
+guile> (define strlen
+          (pointer->procedure
+           int (dynamic-func "strlen" (dynamic-link)) (list '*)))
+guile> (strlen (string->pointer "hello, world"))
+$1 = 12
+
+
+
 
 |#
 
