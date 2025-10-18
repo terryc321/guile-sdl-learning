@@ -81,14 +81,79 @@ int main(){
   fprintf(stdout,"MOUSEMOTIONEVENT x : %zu\n" , offsetof(SDL_MouseMotionEvent, x));
   fprintf(stdout,"MOUSEMOTIONEVENT y : %zu\n" , offsetof(SDL_MouseMotionEvent, y));
   fprintf(stdout,"MOUSEMOTIONEVENT xrel : %zu\n" , offsetof(SDL_MouseMotionEvent, xrel));
-  fprintf(stdout,"MOUSEMOTIONEVENT yrel : %zu\n" , offsetof(SDL_MouseMotionEvent, yrel));
-  
+  fprintf(stdout,"MOUSEMOTIONEVENT yrel : %zu\n" , offsetof(SDL_MouseMotionEvent, yrel));  
   fprintf(stdout,"overall size of MOUSEMOTIONEVENT %zu\n" , sizeof(SDL_MouseMotionEvent));
 
   fprintf(stdout,"================= SDL_QUIT ============= \n");
   fprintf(stdout,"QUIT_EVENT type : %zu\n" , offsetof(SDL_QuitEvent, type));
   fprintf(stdout,"QUIT_EVENT timestamp : %zu\n" , offsetof(SDL_QuitEvent, timestamp));
 
+  /*  
+;; keyboard 
+typedef struct SDL_KeyboardEvent
+{
+    Uint32 type;        //< SDL_KEYDOWN or SDL_KEYUP 
+    Uint32 timestamp;   //< In milliseconds, populated using SDL_GetTicks() 
+    Uint32 windowID;    //< The window with keyboard focus, if any 
+    Uint8 state;        //< SDL_PRESSED or SDL_RELEASED 
+    Uint8 repeat;       //< Non-zero if this is a key repeat 
+    Uint8 padding2;
+    Uint8 padding3;
+    SDL_Keysym keysym;  //< The key that was pressed or released 
+} SDL_KeyboardEvent;
+  */
+
+  fprintf(stdout,"================= SDL_KeyboardEvent ============= \n");
+  fprintf(stdout,"SDL_KeyboardEvent type : %zu\n" , offsetof(SDL_KeyboardEvent, type));
+  fprintf(stdout,"SDL_KeyboardEvent timestamp : %zu\n" , offsetof(SDL_KeyboardEvent, timestamp));
+  fprintf(stdout,"SDL_KeyboardEvent windowid : %zu\n" , offsetof(SDL_KeyboardEvent, windowID));
+  fprintf(stdout,"SDL_KeyboardEvent state : %zu\n" , offsetof(SDL_KeyboardEvent, state));
+  fprintf(stdout,"SDL_KeyboardEvent repeat : %zu\n" , offsetof(SDL_KeyboardEvent, repeat));
+  fprintf(stdout,"SDL_KeyboardEvent padding2 : %zu\n" , offsetof(SDL_KeyboardEvent, padding2));
+  fprintf(stdout,"SDL_KeyboardEvent padding3 : %zu\n" , offsetof(SDL_KeyboardEvent, padding3));
+  fprintf(stdout,"SDL_KeyboardEvent keysym : %zu\n" , offsetof(SDL_KeyboardEvent, keysym));
+
+
+  /*
+typedef struct SDL_Keysym
+{
+    SDL_Scancode scancode;      //< SDL physical key code - see SDL_Scancode for details 
+    SDL_Keycode sym;            //< SDL virtual key code - see SDL_Keycode for details 
+    Uint16 mod;                 //< current key modifiers - see SDL_Keymod for details 
+    Uint32 unused;
+} SDL_Keysym;
+  */
+  fprintf(stdout,"================= SDL_Keysym ============= \n");
+  fprintf(stdout,"SDL_Keysym has size in bytes of : %zu\n" , sizeof(SDL_Keysym));
+  fprintf(stdout,"SDL_Keysym scancode : %zu\n" , offsetof(SDL_Keysym, scancode));
+  fprintf(stdout,"SDL_Keysym sym : %zu\n" , offsetof(SDL_Keysym, sym));
+  fprintf(stdout,"SDL_Keysym mod : %zu\n" , offsetof(SDL_Keysym, mod));
+  fprintf(stdout,"SDL_Keysym unused : %zu\n" , offsetof(SDL_Keysym, unused));
+  
+  fprintf(stdout,"================= standard signed int sizes  ============= \n");
+  fprintf(stdout,"int unspecified : %zu\n" , sizeof(int));
+  fprintf(stdout,"int8_t : %zu\n" , sizeof(int8_t));
+  fprintf(stdout,"int16_t : %zu\n" , sizeof(int16_t));
+  fprintf(stdout,"int32_t : %zu\n" , sizeof(int32_t));
+  fprintf(stdout,"int64_t : %zu\n" , sizeof(int64_t));
+  fprintf(stdout,"================= standard unsigned int sizes  ============= \n");  
+  fprintf(stdout,"uint8_t : %zu\n" , sizeof(uint8_t));
+  fprintf(stdout,"uint16_t : %zu\n" , sizeof(uint16_t));
+  fprintf(stdout,"uint32_t : %zu\n" , sizeof(uint32_t));
+  fprintf(stdout,"uint64_t : %zu\n" , sizeof(uint64_t));
+  
+  fprintf(stdout,"================= SDL_Rect ============= \n");
+  fprintf(stdout,"SDL_Rect has size in bytes of : %zu\n" , sizeof(SDL_Rect));
+  fprintf(stdout,"SDL_Rect x : %zu\n" , offsetof(SDL_Rect, x));
+  fprintf(stdout,"SDL_Rect y : %zu\n" , offsetof(SDL_Rect, y));
+  fprintf(stdout,"SDL_Rect w: %zu\n" , offsetof(SDL_Rect,  w));
+  fprintf(stdout,"SDL_Rect h : %zu\n" , offsetof(SDL_Rect, h));
+
+  fprintf(stdout,"color blue : R G B : %zu\n" , 255 );
+  fprintf(stdout,"color green : R G B : %zu\n" , 255 << 8);
+  fprintf(stdout,"color reg : R G B : %zu\n" , 255 << 16);
+  
+  
   
   exit(0);    
 }

@@ -1,4 +1,159 @@
 
+#|
+
+single byte does not have an endianness
+our computer is little endianness
+
+no scheme procedure bytevector-u8-native-ref just bytevector-u8-ref only for reason no endianness therefore no native
+required as both big little endianness will give same result
+
+
+6.6.12.3 Interpreting Bytevector Contents as Integers
+The contents of a bytevector can be interpreted as a sequence of integers of any given size, sign, and endianness.
+
+(let ((bv (make-bytevector 4)))
+  (bytevector-u8-set! bv 0 #x12)
+  (bytevector-u8-set! bv 1 #x34)
+  (bytevector-u8-set! bv 2 #x56)
+  (bytevector-u8-set! bv 3 #x78)
+
+  (map (lambda (number)
+         (number->string number 16))
+       (list (bytevector-u8-ref bv 0)
+             (bytevector-u16-ref bv 0 (endianness big))
+             (bytevector-u32-ref bv 0 (endianness little)))))
+
+⇒ ("12" "1234" "78563412")
+The most generic procedures to interpret bytevector contents as integers are described below.
+
+Scheme Procedure: bytevector-uint-ref bv index endianness size
+C Function: scm_bytevector_uint_ref (bv, index, endianness, size)
+Return the size-byte long unsigned integer at index index in bv, decoded according to endianness.
+
+Scheme Procedure: bytevector-sint-ref bv index endianness size
+C Function: scm_bytevector_sint_ref (bv, index, endianness, size)
+Return the size-byte long signed integer at index index in bv, decoded according to endianness.
+
+Scheme Procedure: bytevector-uint-set! bv index value endianness size
+C Function: scm_bytevector_uint_set_x (bv, index, value, endianness, size)
+Set the size-byte long unsigned integer at index to value, encoded according to endianness.
+
+Scheme Procedure: bytevector-sint-set! bv index value endianness size
+C Function: scm_bytevector_sint_set_x (bv, index, value, endianness, size)
+Set the size-byte long signed integer at index to value, encoded according to endianness.
+
+The following procedures are similar to the ones above, but specialized to a given integer size:
+
+Scheme Procedure: bytevector-u8-ref bv index
+Scheme Procedure: bytevector-s8-ref bv index
+Scheme Procedure: bytevector-u16-ref bv index endianness
+Scheme Procedure: bytevector-s16-ref bv index endianness
+Scheme Procedure: bytevector-u32-ref bv index endianness
+Scheme Procedure: bytevector-s32-ref bv index endianness
+Scheme Procedure: bytevector-u64-ref bv index endianness
+Scheme Procedure: bytevector-s64-ref bv index endianness
+C Function: scm_bytevector_u8_ref (bv, index)
+C Function: scm_bytevector_s8_ref (bv, index)
+C Function: scm_bytevector_u16_ref (bv, index, endianness)
+C Function: scm_bytevector_s16_ref (bv, index, endianness)
+C Function: scm_bytevector_u32_ref (bv, index, endianness)
+C Function: scm_bytevector_s32_ref (bv, index, endianness)
+C Function: scm_bytevector_u64_ref (bv, index, endianness)
+C Function: scm_bytevector_s64_ref (bv, index, endianness)
+Return the unsigned n-bit (signed) integer (where n is 8, 16, 32 or 64) from bv at index, decoded according to endianness.
+
+Scheme Procedure: bytevector-u8-set! bv index value
+Scheme Procedure: bytevector-s8-set! bv index value
+Scheme Procedure: bytevector-u16-set! bv index value endianness
+Scheme Procedure: bytevector-s16-set! bv index value endianness
+Scheme Procedure: bytevector-u32-set! bv index value endianness
+Scheme Procedure: bytevector-s32-set! bv index value endianness
+Scheme Procedure: bytevector-u64-set! bv index value endianness
+Scheme Procedure: bytevector-s64-set! bv index value endianness
+C Function: scm_bytevector_u8_set_x (bv, index, value)
+C Function: scm_bytevector_s8_set_x (bv, index, value)
+C Function: scm_bytevector_u16_set_x (bv, index, value, endianness)
+C Function: scm_bytevector_s16_set_x (bv, index, value, endianness)
+C Function: scm_bytevector_u32_set_x (bv, index, value, endianness)
+C Function: scm_bytevector_s32_set_x (bv, index, value, endianness)
+C Function: scm_bytevector_u64_set_x (bv, index, value, endianness)
+C Function: scm_bytevector_s64_set_x (bv, index, value, endianness)
+Store value as an n-bit (signed) integer (where n is 8, 16, 32 or 64) in bv at index, encoded according to endianness.
+
+Finally, a variant specialized for the host’s endianness is available for each of these functions (with the exception of the u8 and s8 accessors, as endianness is about byte order and there is only 1 byte):
+
+Scheme Procedure: bytevector-u16-native-ref bv index
+Scheme Procedure: bytevector-s16-native-ref bv index
+Scheme Procedure: bytevector-u32-native-ref bv index
+Scheme Procedure: bytevector-s32-native-ref bv index
+Scheme Procedure: bytevector-u64-native-ref bv index
+Scheme Procedure: bytevector-s64-native-ref bv index
+C Function: scm_bytevector_u16_native_ref (bv, index)
+C Function: scm_bytevector_s16_native_ref (bv, index)
+C Function: scm_bytevector_u32_native_ref (bv, index)
+C Function: scm_bytevector_s32_native_ref (bv, index)
+C Function: scm_bytevector_u64_native_ref (bv, index)
+C Function: scm_bytevector_s64_native_ref (bv, index)
+Return the unsigned n-bit (signed) integer (where n is 8, 16, 32 or 64) from bv at index, decoded according to the host’s native endianness.
+
+Scheme Procedure: bytevector-u16-native-set! bv index value
+Scheme Procedure: bytevector-s16-native-set! bv index value
+Scheme Procedure: bytevector-u32-native-set! bv index value
+Scheme Procedure: bytevector-s32-native-set! bv index value
+Scheme Procedure: bytevector-u64-native-set! bv index value
+Scheme Procedure: bytevector-s64-native-set! bv index value ¶
+C Function: scm_bytevector_u16_native_set_x (bv, index, value)
+C Function: scm_bytevector_s16_native_set_x (bv, index, value)
+C Function: scm_bytevector_u32_native_set_x (bv, index, value)
+C Function: scm_bytevector_s32_native_set_x (bv, index, value)
+C Function: scm_bytevector_u64_native_set_x (bv, index, value)
+C Function: scm_bytevector_s64_native_set_x (bv, index, value)
+Store value as an n-bit (signed) integer (where n is 8, 16, 32 or 64) in bv at index, encoded according to the host’s native endianness.
+
+
+
+From Scheme’s perspective, foreign pointers are shards of chaos. The user can create a foreign pointer for any address, and do with it what they will. The only thing that lends a sense of order to the whole is a shared hallucination that certain storage locations have certain types. When making Scheme wrappers for foreign interfaces, we hide the madness by explicitly representing the the data types of parameters and fields.
+
+These “foreign type values” may be constructed using the constants and procedures from the (system foreign) module, which may be loaded like this:
+
+(use-modules (system foreign))
+(system foreign) exports a number of values expressing the basic C types.
+
+Scheme Variable: int8
+Scheme Variable: uint8
+Scheme Variable: uint16
+Scheme Variable: int16
+Scheme Variable: uint32
+Scheme Variable: int32
+Scheme Variable: uint64
+Scheme Variable: int64
+Scheme Variable: float
+Scheme Variable: double
+Scheme Variable: complex-double
+Scheme Variable: complex-float
+These values represent the C numeric types of the specified sizes and signednesses. complex-float and complex-double stand for C99 float _Complex and double _Complex respectively.
+
+In addition there are some convenience bindings for indicating types of platform-dependent size.
+
+Scheme Variable: int
+Scheme Variable: unsigned-int
+Scheme Variable: long
+Scheme Variable: unsigned-long
+Scheme Variable: short
+Scheme Variable: unsigned-short
+Scheme Variable: size_t
+Scheme Variable: ssize_t
+Scheme Variable: ptrdiff_t
+Scheme Variable: intptr_t
+Scheme Variable: uintptr_t
+Values exported by the (system foreign) module, representing C numeric types. For example, long may be equal? to int64 on a 64-bit platform.
+
+Scheme Variable: void
+The void type. It can be used as the first argument to pointer->procedure to wrap a C function that returns nothing.
+
+In addition, the symbol * is used by convention to denote pointer types. Procedures detailed in the following sections, such as pointer->procedure, accept it as a type descriptor.
+
+|#
 
 ;; 6.19.5 Foreign Functions - guile manual
 (use-modules (system foreign))
@@ -191,6 +346,12 @@
  "
   (sdl-load-bmp-rw (sdl-rw-from-file (string->pointer filename) (string->pointer "rb")) 1))
 
+
+;; int SDL_ShowCursor(int toggle);
+(define sdl-show-cursor
+  (foreign-library-function "libSDL2" "SDL_ShowCursor"
+                            #:return-type int
+                            #:arg-types (list int)))
 
 
 
@@ -584,8 +745,795 @@ MOUSEMOTIONEVENT yrel : 32          bytevector-s32-ref event 32 (endianness litt
       (yrel (bytevector-s32-ref event 32 (endianness little))))
   ...)
 
-|#
 
+;; keyboard 
+typedef struct SDL_KeyboardEvent
+{
+    Uint32 type;        /**< SDL_KEYDOWN or SDL_KEYUP */
+    Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
+    Uint32 windowID;    /**< The window with keyboard focus, if any */
+    Uint8 state;        /**< SDL_PRESSED or SDL_RELEASED */
+    Uint8 repeat;       /**< Non-zero if this is a key repeat */
+    Uint8 padding2;
+    Uint8 padding3;
+    SDL_Keysym keysym;  /**< The key that was pressed or released */
+} SDL_KeyboardEvent;
+
+================= SDL_KeyboardEvent ============= 
+SDL_KeyboardEvent type : 0          bytevector-u32-ref event 0 (endianness little))
+SDL_KeyboardEvent timestamp : 4     bytevector-u32-ref event 4 (endianness little))
+SDL_KeyboardEvent windowid : 8      bytevector-u32-ref event 8 (endianness little))
+SDL_KeyboardEvent state : 12        bytevector-u8-ref event 12 (endianness little))
+SDL_KeyboardEvent repeat : 13       bytevector-u8-ref event 13 (endianness little))
+SDL_KeyboardEvent padding2 : 14     bytevector-u8-ref event 14 (endianness little))
+SDL_KeyboardEvent padding3 : 15     bytevector-u8-ref event 15 (endianness little))
+SDL_KeyboardEvent keysym : 16       bytevector-???-ref event 16 (endianness little))   this is a structure
+
+keysym structure starts at offset 16
+<SDL_Keysym>
+- scancode is an enum or unsigned 32 int   uint32 at offset 0  + global offset 16 = offset 16
+- sym   signed int 32                      int32  at offset 4  + global offset 16 = offset 20
+- mod                                      uint16 at offset 8  + global offset 16 = offset 24
+- unsused                                  ? at offset 12  + global offset 16 = offset 
+
+
+unsigned int in guile scheme u
+signed int in guile scheme s
+
+
+(let ((type (bytevector-u32-ref event 0 (endianness little)))
+      (timestamp (bytevector-u32-ref event 4 (endianness little)))
+      (windowid (bytevector-u32-ref event 8 (endianness little)))
+      (state (bytevector-u8-ref event 12 (endianness little)))
+      (repeat (bytevector-u8-ref event 13 (endianness little)))
+      (padding2 (bytevector-u8-ref event 13 (endianness little)))
+      (padding3 (bytevector-u8-ref event 14 (endianness little)))
+      (keysym-scancode (bytevector-u32-ref event 16 (endianness little)))
+      (keysym-sym (bytevector-s32-ref event 20 (endianness little)))
+      (keysym-mod (bytevector-u16-ref event 24 (endianness little)))
+      ...)
+
+
+
+typedef struct SDL_Keysym
+{
+    SDL_Scancode scancode;      /**< SDL physical key code - see SDL_Scancode for details */
+    SDL_Keycode sym;            /**< SDL virtual key code - see SDL_Keycode for details */
+    Uint16 mod;                 /**< current key modifiers - see SDL_Keymod for details */
+    Uint32 unused;
+} SDL_Keysym;
+
+================= SDL_Keysym 16 bytes offsets ============= 
+SDL_Keysym scancode : 0   
+SDL_Keysym sym : 4
+SDL_Keysym mod : 8
+SDL_Keysym unused : 12
+
+================= standard signed int sizes  ============= 
+int8_t : 1
+int16_t : 2
+int32_t : 4
+int64_t : 8
+================= standard unsigned int sizes  ============= 
+uint8_t : 1
+uint16_t : 2
+uint32_t : 4
+uint64_t : 8
+  
+enum is unsigned 32 bit int  u32
+  
+  
+typedef enum SDL_Scancode
+{
+    SDL_SCANCODE_UNKNOWN = 0,
+
+    /**
+     *  \name Usage page 0x07
+     *
+     *  These values are from usage page 0x07 (USB keyboard page).
+     */
+    /* @{ */
+
+    SDL_SCANCODE_A = 4,
+    SDL_SCANCODE_B = 5,
+    SDL_SCANCODE_C = 6,
+    SDL_SCANCODE_D = 7,
+    SDL_SCANCODE_E = 8,
+    SDL_SCANCODE_F = 9,
+    SDL_SCANCODE_G = 10,
+    SDL_SCANCODE_H = 11,
+    SDL_SCANCODE_I = 12,
+    SDL_SCANCODE_J = 13,
+    SDL_SCANCODE_K = 14,
+    SDL_SCANCODE_L = 15,
+    SDL_SCANCODE_M = 16,
+    SDL_SCANCODE_N = 17,
+    SDL_SCANCODE_O = 18,
+    SDL_SCANCODE_P = 19,
+    SDL_SCANCODE_Q = 20,
+    SDL_SCANCODE_R = 21,
+    SDL_SCANCODE_S = 22,
+    SDL_SCANCODE_T = 23,
+    SDL_SCANCODE_U = 24,
+    SDL_SCANCODE_V = 25,
+    SDL_SCANCODE_W = 26,
+    SDL_SCANCODE_X = 27,
+    SDL_SCANCODE_Y = 28,
+    SDL_SCANCODE_Z = 29,
+
+    SDL_SCANCODE_1 = 30,
+    SDL_SCANCODE_2 = 31,
+    SDL_SCANCODE_3 = 32,
+    SDL_SCANCODE_4 = 33,
+    SDL_SCANCODE_5 = 34,
+    SDL_SCANCODE_6 = 35,
+    SDL_SCANCODE_7 = 36,
+    SDL_SCANCODE_8 = 37,
+    SDL_SCANCODE_9 = 38,
+    SDL_SCANCODE_0 = 39,
+
+    SDL_SCANCODE_RETURN = 40,
+    SDL_SCANCODE_ESCAPE = 41,
+    SDL_SCANCODE_BACKSPACE = 42,
+    SDL_SCANCODE_TAB = 43,
+    SDL_SCANCODE_SPACE = 44,
+
+    SDL_SCANCODE_MINUS = 45,
+    SDL_SCANCODE_EQUALS = 46,
+    SDL_SCANCODE_LEFTBRACKET = 47,
+    SDL_SCANCODE_RIGHTBRACKET = 48,
+    SDL_SCANCODE_BACKSLASH = 49, /**< Located at the lower left of the return
+                                  *   key on ISO keyboards and at the right end
+                                  *   of the QWERTY row on ANSI keyboards.
+                                  *   Produces REVERSE SOLIDUS (backslash) and
+                                  *   VERTICAL LINE in a US layout, REVERSE
+                                  *   SOLIDUS and VERTICAL LINE in a UK Mac
+                                  *   layout, NUMBER SIGN and TILDE in a UK
+                                  *   Windows layout, DOLLAR SIGN and POUND SIGN
+                                  *   in a Swiss German layout, NUMBER SIGN and
+                                  *   APOSTROPHE in a German layout, GRAVE
+                                  *   ACCENT and POUND SIGN in a French Mac
+                                  *   layout, and ASTERISK and MICRO SIGN in a
+                                  *   French Windows layout.
+                                  */
+    SDL_SCANCODE_NONUSHASH = 50, /**< ISO USB keyboards actually use this code
+                                  *   instead of 49 for the same key, but all
+                                  *   OSes I've seen treat the two codes
+                                  *   identically. So, as an implementor, unless
+                                  *   your keyboard generates both of those
+                                  *   codes and your OS treats them differently,
+                                  *   you should generate SDL_SCANCODE_BACKSLASH
+                                  *   instead of this code. As a user, you
+                                  *   should not rely on this code because SDL
+                                  *   will never generate it with most (all?)
+                                  *   keyboards.
+                                  */
+    SDL_SCANCODE_SEMICOLON = 51,
+    SDL_SCANCODE_APOSTROPHE = 52,
+    SDL_SCANCODE_GRAVE = 53, /**< Located in the top left corner (on both ANSI
+                              *   and ISO keyboards). Produces GRAVE ACCENT and
+                              *   TILDE in a US Windows layout and in US and UK
+                              *   Mac layouts on ANSI keyboards, GRAVE ACCENT
+                              *   and NOT SIGN in a UK Windows layout, SECTION
+                              *   SIGN and PLUS-MINUS SIGN in US and UK Mac
+                              *   layouts on ISO keyboards, SECTION SIGN and
+                              *   DEGREE SIGN in a Swiss German layout (Mac:
+                              *   only on ISO keyboards), CIRCUMFLEX ACCENT and
+                              *   DEGREE SIGN in a German layout (Mac: only on
+                              *   ISO keyboards), SUPERSCRIPT TWO and TILDE in a
+                              *   French Windows layout, COMMERCIAL AT and
+                              *   NUMBER SIGN in a French Mac layout on ISO
+                              *   keyboards, and LESS-THAN SIGN and GREATER-THAN
+                              *   SIGN in a Swiss German, German, or French Mac
+                              *   layout on ANSI keyboards.
+                              */
+    SDL_SCANCODE_COMMA = 54,
+    SDL_SCANCODE_PERIOD = 55,
+    SDL_SCANCODE_SLASH = 56,
+
+    SDL_SCANCODE_CAPSLOCK = 57,
+
+    SDL_SCANCODE_F1 = 58,
+    SDL_SCANCODE_F2 = 59,
+    SDL_SCANCODE_F3 = 60,
+    SDL_SCANCODE_F4 = 61,
+    SDL_SCANCODE_F5 = 62,
+    SDL_SCANCODE_F6 = 63,
+    SDL_SCANCODE_F7 = 64,
+    SDL_SCANCODE_F8 = 65,
+    SDL_SCANCODE_F9 = 66,
+    SDL_SCANCODE_F10 = 67,
+    SDL_SCANCODE_F11 = 68,
+    SDL_SCANCODE_F12 = 69,
+
+    SDL_SCANCODE_PRINTSCREEN = 70,
+    SDL_SCANCODE_SCROLLLOCK = 71,
+    SDL_SCANCODE_PAUSE = 72,
+    SDL_SCANCODE_INSERT = 73, /**< insert on PC, help on some Mac keyboards (but
+                                   does send code 73, not 117) */
+    SDL_SCANCODE_HOME = 74,
+    SDL_SCANCODE_PAGEUP = 75,
+    SDL_SCANCODE_DELETE = 76,
+    SDL_SCANCODE_END = 77,
+    SDL_SCANCODE_PAGEDOWN = 78,
+    SDL_SCANCODE_RIGHT = 79,
+    SDL_SCANCODE_LEFT = 80,
+    SDL_SCANCODE_DOWN = 81,
+    SDL_SCANCODE_UP = 82,
+
+    SDL_SCANCODE_NUMLOCKCLEAR = 83, /**< num lock on PC, clear on Mac keyboards
+                                     */
+    SDL_SCANCODE_KP_DIVIDE = 84,
+    SDL_SCANCODE_KP_MULTIPLY = 85,
+    SDL_SCANCODE_KP_MINUS = 86,
+    SDL_SCANCODE_KP_PLUS = 87,
+    SDL_SCANCODE_KP_ENTER = 88,
+    SDL_SCANCODE_KP_1 = 89,
+    SDL_SCANCODE_KP_2 = 90,
+    SDL_SCANCODE_KP_3 = 91,
+    SDL_SCANCODE_KP_4 = 92,
+    SDL_SCANCODE_KP_5 = 93,
+    SDL_SCANCODE_KP_6 = 94,
+    SDL_SCANCODE_KP_7 = 95,
+    SDL_SCANCODE_KP_8 = 96,
+    SDL_SCANCODE_KP_9 = 97,
+    SDL_SCANCODE_KP_0 = 98,
+    SDL_SCANCODE_KP_PERIOD = 99,
+
+    SDL_SCANCODE_NONUSBACKSLASH = 100, /**< This is the additional key that ISO
+                                        *   keyboards have over ANSI ones,
+                                        *   located between left shift and Y.
+                                        *   Produces GRAVE ACCENT and TILDE in a
+                                        *   US or UK Mac layout, REVERSE SOLIDUS
+                                        *   (backslash) and VERTICAL LINE in a
+                                        *   US or UK Windows layout, and
+                                        *   LESS-THAN SIGN and GREATER-THAN SIGN
+                                        *   in a Swiss German, German, or French
+                                        *   layout. */
+    SDL_SCANCODE_APPLICATION = 101, /**< windows contextual menu, compose */
+    SDL_SCANCODE_POWER = 102, /**< The USB document says this is a status flag,
+                               *   not a physical key - but some Mac keyboards
+                               *   do have a power key. */
+    SDL_SCANCODE_KP_EQUALS = 103,
+    SDL_SCANCODE_F13 = 104,
+    SDL_SCANCODE_F14 = 105,
+    SDL_SCANCODE_F15 = 106,
+    SDL_SCANCODE_F16 = 107,
+    SDL_SCANCODE_F17 = 108,
+    SDL_SCANCODE_F18 = 109,
+    SDL_SCANCODE_F19 = 110,
+    SDL_SCANCODE_F20 = 111,
+    SDL_SCANCODE_F21 = 112,
+    SDL_SCANCODE_F22 = 113,
+    SDL_SCANCODE_F23 = 114,
+    SDL_SCANCODE_F24 = 115,
+    SDL_SCANCODE_EXECUTE = 116,
+    SDL_SCANCODE_HELP = 117,    /**< AL Integrated Help Center */
+    SDL_SCANCODE_MENU = 118,    /**< Menu (show menu) */
+    SDL_SCANCODE_SELECT = 119,
+    SDL_SCANCODE_STOP = 120,    /**< AC Stop */
+    SDL_SCANCODE_AGAIN = 121,   /**< AC Redo/Repeat */
+    SDL_SCANCODE_UNDO = 122,    /**< AC Undo */
+    SDL_SCANCODE_CUT = 123,     /**< AC Cut */
+    SDL_SCANCODE_COPY = 124,    /**< AC Copy */
+    SDL_SCANCODE_PASTE = 125,   /**< AC Paste */
+    SDL_SCANCODE_FIND = 126,    /**< AC Find */
+    SDL_SCANCODE_MUTE = 127,
+    SDL_SCANCODE_VOLUMEUP = 128,
+    SDL_SCANCODE_VOLUMEDOWN = 129,
+/* not sure whether there's a reason to enable these */
+/*     SDL_SCANCODE_LOCKINGCAPSLOCK = 130,  */
+/*     SDL_SCANCODE_LOCKINGNUMLOCK = 131, */
+/*     SDL_SCANCODE_LOCKINGSCROLLLOCK = 132, */
+    SDL_SCANCODE_KP_COMMA = 133,
+    SDL_SCANCODE_KP_EQUALSAS400 = 134,
+
+    SDL_SCANCODE_INTERNATIONAL1 = 135, /**< used on Asian keyboards, see
+                                            footnotes in USB doc */
+    SDL_SCANCODE_INTERNATIONAL2 = 136,
+    SDL_SCANCODE_INTERNATIONAL3 = 137, /**< Yen */
+    SDL_SCANCODE_INTERNATIONAL4 = 138,
+    SDL_SCANCODE_INTERNATIONAL5 = 139,
+    SDL_SCANCODE_INTERNATIONAL6 = 140,
+    SDL_SCANCODE_INTERNATIONAL7 = 141,
+    SDL_SCANCODE_INTERNATIONAL8 = 142,
+    SDL_SCANCODE_INTERNATIONAL9 = 143,
+    SDL_SCANCODE_LANG1 = 144, /**< Hangul/English toggle */
+    SDL_SCANCODE_LANG2 = 145, /**< Hanja conversion */
+    SDL_SCANCODE_LANG3 = 146, /**< Katakana */
+    SDL_SCANCODE_LANG4 = 147, /**< Hiragana */
+    SDL_SCANCODE_LANG5 = 148, /**< Zenkaku/Hankaku */
+    SDL_SCANCODE_LANG6 = 149, /**< reserved */
+    SDL_SCANCODE_LANG7 = 150, /**< reserved */
+    SDL_SCANCODE_LANG8 = 151, /**< reserved */
+    SDL_SCANCODE_LANG9 = 152, /**< reserved */
+
+    SDL_SCANCODE_ALTERASE = 153,    /**< Erase-Eaze */
+    SDL_SCANCODE_SYSREQ = 154,
+    SDL_SCANCODE_CANCEL = 155,      /**< AC Cancel */
+    SDL_SCANCODE_CLEAR = 156,
+    SDL_SCANCODE_PRIOR = 157,
+    SDL_SCANCODE_RETURN2 = 158,
+    SDL_SCANCODE_SEPARATOR = 159,
+    SDL_SCANCODE_OUT = 160,
+    SDL_SCANCODE_OPER = 161,
+    SDL_SCANCODE_CLEARAGAIN = 162,
+    SDL_SCANCODE_CRSEL = 163,
+    SDL_SCANCODE_EXSEL = 164,
+
+    SDL_SCANCODE_KP_00 = 176,
+    SDL_SCANCODE_KP_000 = 177,
+    SDL_SCANCODE_THOUSANDSSEPARATOR = 178,
+    SDL_SCANCODE_DECIMALSEPARATOR = 179,
+    SDL_SCANCODE_CURRENCYUNIT = 180,
+    SDL_SCANCODE_CURRENCYSUBUNIT = 181,
+    SDL_SCANCODE_KP_LEFTPAREN = 182,
+    SDL_SCANCODE_KP_RIGHTPAREN = 183,
+    SDL_SCANCODE_KP_LEFTBRACE = 184,
+    SDL_SCANCODE_KP_RIGHTBRACE = 185,
+    SDL_SCANCODE_KP_TAB = 186,
+    SDL_SCANCODE_KP_BACKSPACE = 187,
+    SDL_SCANCODE_KP_A = 188,
+    SDL_SCANCODE_KP_B = 189,
+    SDL_SCANCODE_KP_C = 190,
+    SDL_SCANCODE_KP_D = 191,
+    SDL_SCANCODE_KP_E = 192,
+    SDL_SCANCODE_KP_F = 193,
+    SDL_SCANCODE_KP_XOR = 194,
+    SDL_SCANCODE_KP_POWER = 195,
+    SDL_SCANCODE_KP_PERCENT = 196,
+    SDL_SCANCODE_KP_LESS = 197,
+    SDL_SCANCODE_KP_GREATER = 198,
+    SDL_SCANCODE_KP_AMPERSAND = 199,
+    SDL_SCANCODE_KP_DBLAMPERSAND = 200,
+    SDL_SCANCODE_KP_VERTICALBAR = 201,
+    SDL_SCANCODE_KP_DBLVERTICALBAR = 202,
+    SDL_SCANCODE_KP_COLON = 203,
+    SDL_SCANCODE_KP_HASH = 204,
+    SDL_SCANCODE_KP_SPACE = 205,
+    SDL_SCANCODE_KP_AT = 206,
+    SDL_SCANCODE_KP_EXCLAM = 207,
+    SDL_SCANCODE_KP_MEMSTORE = 208,
+    SDL_SCANCODE_KP_MEMRECALL = 209,
+    SDL_SCANCODE_KP_MEMCLEAR = 210,
+    SDL_SCANCODE_KP_MEMADD = 211,
+    SDL_SCANCODE_KP_MEMSUBTRACT = 212,
+    SDL_SCANCODE_KP_MEMMULTIPLY = 213,
+    SDL_SCANCODE_KP_MEMDIVIDE = 214,
+    SDL_SCANCODE_KP_PLUSMINUS = 215,
+    SDL_SCANCODE_KP_CLEAR = 216,
+    SDL_SCANCODE_KP_CLEARENTRY = 217,
+    SDL_SCANCODE_KP_BINARY = 218,
+    SDL_SCANCODE_KP_OCTAL = 219,
+    SDL_SCANCODE_KP_DECIMAL = 220,
+    SDL_SCANCODE_KP_HEXADECIMAL = 221,
+
+    SDL_SCANCODE_LCTRL = 224,
+    SDL_SCANCODE_LSHIFT = 225,
+    SDL_SCANCODE_LALT = 226, /**< alt, option */
+    SDL_SCANCODE_LGUI = 227, /**< windows, command (apple), meta */
+    SDL_SCANCODE_RCTRL = 228,
+    SDL_SCANCODE_RSHIFT = 229,
+    SDL_SCANCODE_RALT = 230, /**< alt gr, option */
+    SDL_SCANCODE_RGUI = 231, /**< windows, command (apple), meta */
+
+    SDL_SCANCODE_MODE = 257,    /**< I'm not sure if this is really not covered
+                                 *   by any of the above, but since there's a
+                                 *   special KMOD_MODE for it I'm adding it here
+                                 */
+
+    /* @} *//* Usage page 0x07 */
+
+    /**
+     *  \name Usage page 0x0C
+     *
+     *  These values are mapped from usage page 0x0C (USB consumer page).
+     *  See https://usb.org/sites/default/files/hut1_2.pdf
+     *
+     *  There are way more keys in the spec than we can represent in the
+     *  current scancode range, so pick the ones that commonly come up in
+     *  real world usage.
+     */
+    /* @{ */
+
+    SDL_SCANCODE_AUDIONEXT = 258,
+    SDL_SCANCODE_AUDIOPREV = 259,
+    SDL_SCANCODE_AUDIOSTOP = 260,
+    SDL_SCANCODE_AUDIOPLAY = 261,
+    SDL_SCANCODE_AUDIOMUTE = 262,
+    SDL_SCANCODE_MEDIASELECT = 263,
+    SDL_SCANCODE_WWW = 264,             /**< AL Internet Browser */
+    SDL_SCANCODE_MAIL = 265,
+    SDL_SCANCODE_CALCULATOR = 266,      /**< AL Calculator */
+    SDL_SCANCODE_COMPUTER = 267,
+    SDL_SCANCODE_AC_SEARCH = 268,       /**< AC Search */
+    SDL_SCANCODE_AC_HOME = 269,         /**< AC Home */
+    SDL_SCANCODE_AC_BACK = 270,         /**< AC Back */
+    SDL_SCANCODE_AC_FORWARD = 271,      /**< AC Forward */
+    SDL_SCANCODE_AC_STOP = 272,         /**< AC Stop */
+    SDL_SCANCODE_AC_REFRESH = 273,      /**< AC Refresh */
+    SDL_SCANCODE_AC_BOOKMARKS = 274,    /**< AC Bookmarks */
+
+    /* @} *//* Usage page 0x0C */
+
+    /**
+     *  \name Walther keys
+     *
+     *  These are values that Christian Walther added (for mac keyboard?).
+     */
+    /* @{ */
+
+    SDL_SCANCODE_BRIGHTNESSDOWN = 275,
+    SDL_SCANCODE_BRIGHTNESSUP = 276,
+    SDL_SCANCODE_DISPLAYSWITCH = 277, /**< display mirroring/dual display
+                                           switch, video mode switch */
+    SDL_SCANCODE_KBDILLUMTOGGLE = 278,
+    SDL_SCANCODE_KBDILLUMDOWN = 279,
+    SDL_SCANCODE_KBDILLUMUP = 280,
+    SDL_SCANCODE_EJECT = 281,
+    SDL_SCANCODE_SLEEP = 282,           /**< SC System Sleep */
+
+    SDL_SCANCODE_APP1 = 283,
+    SDL_SCANCODE_APP2 = 284,
+
+    /* @} *//* Walther keys */
+
+    /**
+     *  \name Usage page 0x0C (additional media keys)
+     *
+     *  These values are mapped from usage page 0x0C (USB consumer page).
+     */
+    /* @{ */
+
+    SDL_SCANCODE_AUDIOREWIND = 285,
+    SDL_SCANCODE_AUDIOFASTFORWARD = 286,
+
+    /* @} *//* Usage page 0x0C (additional media keys) */
+
+    /**
+     *  \name Mobile keys
+     *
+     *  These are values that are often used on mobile phones.
+     */
+    /* @{ */
+
+    SDL_SCANCODE_SOFTLEFT = 287, /**< Usually situated below the display on phones and
+                                      used as a multi-function feature key for selecting
+                                      a software defined function shown on the bottom left
+                                      of the display. */
+    SDL_SCANCODE_SOFTRIGHT = 288, /**< Usually situated below the display on phones and
+                                       used as a multi-function feature key for selecting
+                                       a software defined function shown on the bottom right
+                                       of the display. */
+    SDL_SCANCODE_CALL = 289, /**< Used for accepting phone calls. */
+    SDL_SCANCODE_ENDCALL = 290, /**< Used for rejecting phone calls. */
+
+    /* @} *//* Mobile keys */
+
+    /* Add any other keys here. */
+
+    SDL_NUM_SCANCODES = 512 /**< not a key, just marks the number of scancodes
+                                 for array bounds */
+} SDL_Scancode;
+
+
+
+
+typedef Sint32 SDL_Keycode;
+
+#define SDLK_SCANCODE_MASK (1<<30)
+#define SDL_SCANCODE_TO_KEYCODE(X)  (X | SDLK_SCANCODE_MASK)
+
+
+typedef enum
+{
+    SDLK_UNKNOWN = 0,
+
+    SDLK_RETURN = '\r',
+    SDLK_ESCAPE = '\x1B',
+    SDLK_BACKSPACE = '\b',
+    SDLK_TAB = '\t',
+    SDLK_SPACE = ' ',
+    SDLK_EXCLAIM = '!',
+    SDLK_QUOTEDBL = '"',
+    SDLK_HASH = '#',
+    SDLK_PERCENT = '%',
+    SDLK_DOLLAR = '$',
+    SDLK_AMPERSAND = '&',
+    SDLK_QUOTE = '\'',
+    SDLK_LEFTPAREN = '(',
+    SDLK_RIGHTPAREN = ')',
+    SDLK_ASTERISK = '*',
+    SDLK_PLUS = '+',
+    SDLK_COMMA = ',',
+    SDLK_MINUS = '-',
+    SDLK_PERIOD = '.',
+    SDLK_SLASH = '/',
+    SDLK_0 = '0',
+    SDLK_1 = '1',
+    SDLK_2 = '2',
+    SDLK_3 = '3',
+    SDLK_4 = '4',
+    SDLK_5 = '5',
+    SDLK_6 = '6',
+    SDLK_7 = '7',
+    SDLK_8 = '8',
+    SDLK_9 = '9',
+    SDLK_COLON = ':',
+    SDLK_SEMICOLON = ';',
+    SDLK_LESS = '<',
+    SDLK_EQUALS = '=',
+    SDLK_GREATER = '>',
+    SDLK_QUESTION = '?',
+    SDLK_AT = '@',
+
+    /*
+       Skip uppercase letters
+     */
+
+    SDLK_LEFTBRACKET = '[',
+    SDLK_BACKSLASH = '\\',
+    SDLK_RIGHTBRACKET = ']',
+    SDLK_CARET = '^',
+    SDLK_UNDERSCORE = '_',
+    SDLK_BACKQUOTE = '`',
+    SDLK_a = 'a',
+    SDLK_b = 'b',
+    SDLK_c = 'c',
+    SDLK_d = 'd',
+    SDLK_e = 'e',
+    SDLK_f = 'f',
+    SDLK_g = 'g',
+    SDLK_h = 'h',
+    SDLK_i = 'i',
+    SDLK_j = 'j',
+    SDLK_k = 'k',
+    SDLK_l = 'l',
+    SDLK_m = 'm',
+    SDLK_n = 'n',
+    SDLK_o = 'o',
+    SDLK_p = 'p',
+    SDLK_q = 'q',
+    SDLK_r = 'r',
+    SDLK_s = 's',
+    SDLK_t = 't',
+    SDLK_u = 'u',
+    SDLK_v = 'v',
+    SDLK_w = 'w',
+    SDLK_x = 'x',
+    SDLK_y = 'y',
+    SDLK_z = 'z',
+
+    SDLK_CAPSLOCK = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_CAPSLOCK),
+
+    SDLK_F1 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_F1),
+    SDLK_F2 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_F2),
+    SDLK_F3 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_F3),
+    SDLK_F4 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_F4),
+    SDLK_F5 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_F5),
+    SDLK_F6 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_F6),
+    SDLK_F7 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_F7),
+    SDLK_F8 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_F8),
+    SDLK_F9 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_F9),
+    SDLK_F10 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_F10),
+    SDLK_F11 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_F11),
+    SDLK_F12 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_F12),
+
+    SDLK_PRINTSCREEN = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_PRINTSCREEN),
+    SDLK_SCROLLLOCK = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_SCROLLLOCK),
+    SDLK_PAUSE = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_PAUSE),
+    SDLK_INSERT = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_INSERT),
+    SDLK_HOME = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_HOME),
+    SDLK_PAGEUP = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_PAGEUP),
+    SDLK_DELETE = '\x7F',
+    SDLK_END = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_END),
+    SDLK_PAGEDOWN = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_PAGEDOWN),
+    SDLK_RIGHT = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_RIGHT),
+    SDLK_LEFT = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_LEFT),
+    SDLK_DOWN = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_DOWN),
+    SDLK_UP = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_UP),
+
+    SDLK_NUMLOCKCLEAR = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_NUMLOCKCLEAR),
+    SDLK_KP_DIVIDE = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_DIVIDE),
+    SDLK_KP_MULTIPLY = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_MULTIPLY),
+    SDLK_KP_MINUS = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_MINUS),
+    SDLK_KP_PLUS = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_PLUS),
+    SDLK_KP_ENTER = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_ENTER),
+    SDLK_KP_1 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_1),
+    SDLK_KP_2 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_2),
+    SDLK_KP_3 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_3),
+    SDLK_KP_4 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_4),
+    SDLK_KP_5 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_5),
+    SDLK_KP_6 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_6),
+    SDLK_KP_7 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_7),
+    SDLK_KP_8 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_8),
+    SDLK_KP_9 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_9),
+    SDLK_KP_0 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_0),
+    SDLK_KP_PERIOD = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_PERIOD),
+
+    SDLK_APPLICATION = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_APPLICATION),
+    SDLK_POWER = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_POWER),
+    SDLK_KP_EQUALS = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_EQUALS),
+    SDLK_F13 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_F13),
+    SDLK_F14 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_F14),
+    SDLK_F15 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_F15),
+    SDLK_F16 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_F16),
+    SDLK_F17 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_F17),
+    SDLK_F18 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_F18),
+    SDLK_F19 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_F19),
+    SDLK_F20 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_F20),
+    SDLK_F21 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_F21),
+    SDLK_F22 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_F22),
+    SDLK_F23 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_F23),
+    SDLK_F24 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_F24),
+    SDLK_EXECUTE = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_EXECUTE),
+    SDLK_HELP = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_HELP),
+    SDLK_MENU = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_MENU),
+    SDLK_SELECT = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_SELECT),
+    SDLK_STOP = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_STOP),
+    SDLK_AGAIN = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_AGAIN),
+    SDLK_UNDO = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_UNDO),
+    SDLK_CUT = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_CUT),
+    SDLK_COPY = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_COPY),
+    SDLK_PASTE = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_PASTE),
+    SDLK_FIND = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_FIND),
+    SDLK_MUTE = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_MUTE),
+    SDLK_VOLUMEUP = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_VOLUMEUP),
+    SDLK_VOLUMEDOWN = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_VOLUMEDOWN),
+    SDLK_KP_COMMA = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_COMMA),
+    SDLK_KP_EQUALSAS400 =
+        SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_EQUALSAS400),
+
+    SDLK_ALTERASE = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_ALTERASE),
+    SDLK_SYSREQ = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_SYSREQ),
+    SDLK_CANCEL = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_CANCEL),
+    SDLK_CLEAR = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_CLEAR),
+    SDLK_PRIOR = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_PRIOR),
+    SDLK_RETURN2 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_RETURN2),
+    SDLK_SEPARATOR = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_SEPARATOR),
+    SDLK_OUT = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_OUT),
+    SDLK_OPER = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_OPER),
+    SDLK_CLEARAGAIN = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_CLEARAGAIN),
+    SDLK_CRSEL = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_CRSEL),
+    SDLK_EXSEL = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_EXSEL),
+
+    SDLK_KP_00 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_00),
+    SDLK_KP_000 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_000),
+    SDLK_THOUSANDSSEPARATOR =
+        SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_THOUSANDSSEPARATOR),
+    SDLK_DECIMALSEPARATOR =
+        SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_DECIMALSEPARATOR),
+    SDLK_CURRENCYUNIT = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_CURRENCYUNIT),
+    SDLK_CURRENCYSUBUNIT =
+        SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_CURRENCYSUBUNIT),
+    SDLK_KP_LEFTPAREN = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_LEFTPAREN),
+    SDLK_KP_RIGHTPAREN = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_RIGHTPAREN),
+    SDLK_KP_LEFTBRACE = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_LEFTBRACE),
+    SDLK_KP_RIGHTBRACE = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_RIGHTBRACE),
+    SDLK_KP_TAB = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_TAB),
+    SDLK_KP_BACKSPACE = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_BACKSPACE),
+    SDLK_KP_A = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_A),
+    SDLK_KP_B = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_B),
+    SDLK_KP_C = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_C),
+    SDLK_KP_D = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_D),
+    SDLK_KP_E = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_E),
+    SDLK_KP_F = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_F),
+    SDLK_KP_XOR = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_XOR),
+    SDLK_KP_POWER = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_POWER),
+    SDLK_KP_PERCENT = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_PERCENT),
+    SDLK_KP_LESS = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_LESS),
+    SDLK_KP_GREATER = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_GREATER),
+    SDLK_KP_AMPERSAND = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_AMPERSAND),
+    SDLK_KP_DBLAMPERSAND =
+        SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_DBLAMPERSAND),
+    SDLK_KP_VERTICALBAR =
+        SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_VERTICALBAR),
+    SDLK_KP_DBLVERTICALBAR =
+        SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_DBLVERTICALBAR),
+    SDLK_KP_COLON = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_COLON),
+    SDLK_KP_HASH = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_HASH),
+    SDLK_KP_SPACE = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_SPACE),
+    SDLK_KP_AT = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_AT),
+    SDLK_KP_EXCLAM = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_EXCLAM),
+    SDLK_KP_MEMSTORE = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_MEMSTORE),
+    SDLK_KP_MEMRECALL = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_MEMRECALL),
+    SDLK_KP_MEMCLEAR = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_MEMCLEAR),
+    SDLK_KP_MEMADD = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_MEMADD),
+    SDLK_KP_MEMSUBTRACT =
+        SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_MEMSUBTRACT),
+    SDLK_KP_MEMMULTIPLY =
+        SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_MEMMULTIPLY),
+    SDLK_KP_MEMDIVIDE = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_MEMDIVIDE),
+    SDLK_KP_PLUSMINUS = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_PLUSMINUS),
+    SDLK_KP_CLEAR = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_CLEAR),
+    SDLK_KP_CLEARENTRY = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_CLEARENTRY),
+    SDLK_KP_BINARY = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_BINARY),
+    SDLK_KP_OCTAL = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_OCTAL),
+    SDLK_KP_DECIMAL = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_DECIMAL),
+    SDLK_KP_HEXADECIMAL =
+        SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KP_HEXADECIMAL),
+
+    SDLK_LCTRL = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_LCTRL),
+    SDLK_LSHIFT = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_LSHIFT),
+    SDLK_LALT = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_LALT),
+    SDLK_LGUI = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_LGUI),
+    SDLK_RCTRL = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_RCTRL),
+    SDLK_RSHIFT = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_RSHIFT),
+    SDLK_RALT = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_RALT),
+    SDLK_RGUI = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_RGUI),
+
+    SDLK_MODE = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_MODE),
+
+    SDLK_AUDIONEXT = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_AUDIONEXT),
+    SDLK_AUDIOPREV = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_AUDIOPREV),
+    SDLK_AUDIOSTOP = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_AUDIOSTOP),
+    SDLK_AUDIOPLAY = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_AUDIOPLAY),
+    SDLK_AUDIOMUTE = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_AUDIOMUTE),
+    SDLK_MEDIASELECT = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_MEDIASELECT),
+    SDLK_WWW = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_WWW),
+    SDLK_MAIL = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_MAIL),
+    SDLK_CALCULATOR = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_CALCULATOR),
+    SDLK_COMPUTER = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_COMPUTER),
+    SDLK_AC_SEARCH = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_AC_SEARCH),
+    SDLK_AC_HOME = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_AC_HOME),
+    SDLK_AC_BACK = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_AC_BACK),
+    SDLK_AC_FORWARD = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_AC_FORWARD),
+    SDLK_AC_STOP = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_AC_STOP),
+    SDLK_AC_REFRESH = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_AC_REFRESH),
+    SDLK_AC_BOOKMARKS = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_AC_BOOKMARKS),
+
+    SDLK_BRIGHTNESSDOWN =
+        SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_BRIGHTNESSDOWN),
+    SDLK_BRIGHTNESSUP = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_BRIGHTNESSUP),
+    SDLK_DISPLAYSWITCH = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_DISPLAYSWITCH),
+    SDLK_KBDILLUMTOGGLE =
+        SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KBDILLUMTOGGLE),
+    SDLK_KBDILLUMDOWN = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KBDILLUMDOWN),
+    SDLK_KBDILLUMUP = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_KBDILLUMUP),
+    SDLK_EJECT = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_EJECT),
+    SDLK_SLEEP = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_SLEEP),
+    SDLK_APP1 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_APP1),
+    SDLK_APP2 = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_APP2),
+
+    SDLK_AUDIOREWIND = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_AUDIOREWIND),
+    SDLK_AUDIOFASTFORWARD = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_AUDIOFASTFORWARD),
+
+    SDLK_SOFTLEFT = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_SOFTLEFT),
+    SDLK_SOFTRIGHT = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_SOFTRIGHT),
+    SDLK_CALL = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_CALL),
+    SDLK_ENDCALL = SDL_SCANCODE_TO_KEYCODE(SDL_SCANCODE_ENDCALL)
+} SDL_KeyCode;
+
+/**
+ * \brief Enumeration of valid key mods (possibly OR'd together).
+ */
+typedef enum
+{
+    KMOD_NONE = 0x0000,
+    KMOD_LSHIFT = 0x0001,
+    KMOD_RSHIFT = 0x0002,
+    KMOD_LCTRL = 0x0040,
+    KMOD_RCTRL = 0x0080,
+    KMOD_LALT = 0x0100,
+    KMOD_RALT = 0x0200,
+    KMOD_LGUI = 0x0400,
+    KMOD_RGUI = 0x0800,
+    KMOD_NUM = 0x1000,
+    KMOD_CAPS = 0x2000,
+    KMOD_MODE = 0x4000,
+    KMOD_SCROLL = 0x8000,
+
+    KMOD_CTRL = KMOD_LCTRL | KMOD_RCTRL,
+    KMOD_SHIFT = KMOD_LSHIFT | KMOD_RSHIFT,
+    KMOD_ALT = KMOD_LALT | KMOD_RALT,
+    KMOD_GUI = KMOD_LGUI | KMOD_RGUI,
+
+    KMOD_RESERVED = KMOD_SCROLL /* This is for source-level compatibility with SDL 2.0.0. */
+} SDL_Keymod;
+
+
+
+|#
 
 
 (define *constant-sdl-quit* #x100)
@@ -593,8 +1541,572 @@ MOUSEMOTIONEVENT yrel : 32          bytevector-s32-ref event 32 (endianness litt
 (define *constant-sdl-keyup* #x301)
 (define *constant-sdl-mousemotion* #x400)
 
+(define *constant-sdl-scancode-unknown* 0) 
+(define *constant-sdl-scancode-a* 4) 
+(define *constant-sdl-scancode-b* 5) 
+(define *constant-sdl-scancode-c* 6) 
+(define *constant-sdl-scancode-d* 7) 
+(define *constant-sdl-scancode-e* 8) 
+(define *constant-sdl-scancode-f* 9) 
+(define *constant-sdl-scancode-g* 10) 
+(define *constant-sdl-scancode-h* 11) 
+(define *constant-sdl-scancode-i* 12) 
+(define *constant-sdl-scancode-j* 13) 
+(define *constant-sdl-scancode-k* 14) 
+(define *constant-sdl-scancode-l* 15) 
+(define *constant-sdl-scancode-m* 16) 
+(define *constant-sdl-scancode-n* 17) 
+(define *constant-sdl-scancode-o* 18) 
+(define *constant-sdl-scancode-p* 19) 
+(define *constant-sdl-scancode-q* 20) 
+(define *constant-sdl-scancode-r* 21) 
+(define *constant-sdl-scancode-s* 22) 
+(define *constant-sdl-scancode-t* 23) 
+(define *constant-sdl-scancode-u* 24) 
+(define *constant-sdl-scancode-v* 25) 
+(define *constant-sdl-scancode-w* 26) 
+(define *constant-sdl-scancode-x* 27) 
+(define *constant-sdl-scancode-y* 28) 
+(define *constant-sdl-scancode-z* 29) 
+(define *constant-sdl-scancode-1* 30) 
+(define *constant-sdl-scancode-2* 31) 
+(define *constant-sdl-scancode-3* 32) 
+(define *constant-sdl-scancode-4* 33) 
+(define *constant-sdl-scancode-5* 34) 
+(define *constant-sdl-scancode-6* 35) 
+(define *constant-sdl-scancode-7* 36) 
+(define *constant-sdl-scancode-8* 37) 
+(define *constant-sdl-scancode-9* 38) 
+(define *constant-sdl-scancode-0* 39) 
+(define *constant-sdl-scancode-return* 40) 
+(define *constant-sdl-scancode-escape* 41) 
+(define *constant-sdl-scancode-backspace* 42) 
+(define *constant-sdl-scancode-tab* 43) 
+(define *constant-sdl-scancode-space* 44) 
+(define *constant-sdl-scancode-minus* 45) 
+(define *constant-sdl-scancode-equals* 46) 
+(define *constant-sdl-scancode-leftbracket* 47) 
+(define *constant-sdl-scancode-rightbracket* 48) 
+(define *constant-sdl-scancode-backslash* 49) 
+(define *constant-sdl-scancode-nonushash* 50) 
+(define *constant-sdl-scancode-semicolon* 51) 
+(define *constant-sdl-scancode-apostrophe* 52) 
+(define *constant-sdl-scancode-grave* 53) 
+(define *constant-sdl-scancode-comma* 54) 
+(define *constant-sdl-scancode-period* 55) 
+(define *constant-sdl-scancode-slash* 56) 
+(define *constant-sdl-scancode-capslock* 57) 
+(define *constant-sdl-scancode-f1* 58) 
+(define *constant-sdl-scancode-f2* 59) 
+(define *constant-sdl-scancode-f3* 60) 
+(define *constant-sdl-scancode-f4* 61) 
+(define *constant-sdl-scancode-f5* 62) 
+(define *constant-sdl-scancode-f6* 63) 
+(define *constant-sdl-scancode-f7* 64) 
+(define *constant-sdl-scancode-f8* 65) 
+(define *constant-sdl-scancode-f9* 66) 
+(define *constant-sdl-scancode-f10* 67) 
+(define *constant-sdl-scancode-f11* 68) 
+(define *constant-sdl-scancode-f12* 69) 
+(define *constant-sdl-scancode-printscreen* 70) 
+(define *constant-sdl-scancode-scrolllock* 71) 
+(define *constant-sdl-scancode-pause* 72) 
+(define *constant-sdl-scancode-insert* 73) 
+(define *constant-sdl-scancode-home* 74) 
+(define *constant-sdl-scancode-pageup* 75) 
+(define *constant-sdl-scancode-delete* 76) 
+(define *constant-sdl-scancode-end* 77) 
+(define *constant-sdl-scancode-pagedown* 78) 
+(define *constant-sdl-scancode-right* 79) 
+(define *constant-sdl-scancode-left* 80) 
+(define *constant-sdl-scancode-down* 81) 
+(define *constant-sdl-scancode-up* 82) 
+(define *constant-sdl-scancode-numlockclear* 83) 
+(define *constant-sdl-scancode-kp-divide* 84) 
+(define *constant-sdl-scancode-kp-multiply* 85) 
+(define *constant-sdl-scancode-kp-minus* 86) 
+(define *constant-sdl-scancode-kp-plus* 87) 
+(define *constant-sdl-scancode-kp-enter* 88) 
+(define *constant-sdl-scancode-kp-1* 89) 
+(define *constant-sdl-scancode-kp-2* 90) 
+(define *constant-sdl-scancode-kp-3* 91) 
+(define *constant-sdl-scancode-kp-4* 92) 
+(define *constant-sdl-scancode-kp-5* 93) 
+(define *constant-sdl-scancode-kp-6* 94) 
+(define *constant-sdl-scancode-kp-7* 95) 
+(define *constant-sdl-scancode-kp-8* 96) 
+(define *constant-sdl-scancode-kp-9* 97) 
+(define *constant-sdl-scancode-kp-0* 98) 
+(define *constant-sdl-scancode-kp-period* 99) 
+(define *constant-sdl-scancode-nonusbackslash* 100) 
+(define *constant-sdl-scancode-application* 101) 
+(define *constant-sdl-scancode-power* 102) 
+(define *constant-sdl-scancode-kp-equals* 103) 
+(define *constant-sdl-scancode-f13* 104) 
+(define *constant-sdl-scancode-f14* 105) 
+(define *constant-sdl-scancode-f15* 106) 
+(define *constant-sdl-scancode-f16* 107) 
+(define *constant-sdl-scancode-f17* 108) 
+(define *constant-sdl-scancode-f18* 109) 
+(define *constant-sdl-scancode-f19* 110) 
+(define *constant-sdl-scancode-f20* 111) 
+(define *constant-sdl-scancode-f21* 112) 
+(define *constant-sdl-scancode-f22* 113) 
+(define *constant-sdl-scancode-f23* 114) 
+(define *constant-sdl-scancode-f24* 115) 
+(define *constant-sdl-scancode-execute* 116) 
+(define *constant-sdl-scancode-help* 117) 
+(define *constant-sdl-scancode-menu* 118) 
+(define *constant-sdl-scancode-select* 119) 
+(define *constant-sdl-scancode-stop* 120) 
+(define *constant-sdl-scancode-again* 121) 
+(define *constant-sdl-scancode-undo* 122) 
+(define *constant-sdl-scancode-cut* 123) 
+(define *constant-sdl-scancode-copy* 124) 
+(define *constant-sdl-scancode-paste* 125) 
+(define *constant-sdl-scancode-find* 126) 
+(define *constant-sdl-scancode-mute* 127) 
+(define *constant-sdl-scancode-volumeup* 128) 
+(define *constant-sdl-scancode-volumedown* 129) 
+(define *constant-sdl-scancode-lockingcapslock* 130) 
+(define *constant-sdl-scancode-lockingnumlock* 131) 
+(define *constant-sdl-scancode-lockingscrolllock* 132) 
+(define *constant-sdl-scancode-kp-comma* 133) 
+(define *constant-sdl-scancode-kp-equalsas400* 134) 
+(define *constant-sdl-scancode-international1* 135) 
+(define *constant-sdl-scancode-international2* 136) 
+(define *constant-sdl-scancode-international3* 137) 
+(define *constant-sdl-scancode-international4* 138) 
+(define *constant-sdl-scancode-international5* 139) 
+(define *constant-sdl-scancode-international6* 140) 
+(define *constant-sdl-scancode-international7* 141) 
+(define *constant-sdl-scancode-international8* 142) 
+(define *constant-sdl-scancode-international9* 143) 
+(define *constant-sdl-scancode-lang1* 144) 
+(define *constant-sdl-scancode-lang2* 145) 
+(define *constant-sdl-scancode-lang3* 146) 
+(define *constant-sdl-scancode-lang4* 147) 
+(define *constant-sdl-scancode-lang5* 148) 
+(define *constant-sdl-scancode-lang6* 149) 
+(define *constant-sdl-scancode-lang7* 150) 
+(define *constant-sdl-scancode-lang8* 151) 
+(define *constant-sdl-scancode-lang9* 152) 
+(define *constant-sdl-scancode-alterase* 153) 
+(define *constant-sdl-scancode-sysreq* 154) 
+(define *constant-sdl-scancode-cancel* 155) 
+(define *constant-sdl-scancode-clear* 156) 
+(define *constant-sdl-scancode-prior* 157) 
+(define *constant-sdl-scancode-return2* 158) 
+(define *constant-sdl-scancode-separator* 159) 
+(define *constant-sdl-scancode-out* 160) 
+(define *constant-sdl-scancode-oper* 161) 
+(define *constant-sdl-scancode-clearagain* 162) 
+(define *constant-sdl-scancode-crsel* 163) 
+(define *constant-sdl-scancode-exsel* 164) 
+(define *constant-sdl-scancode-kp-00* 176) 
+(define *constant-sdl-scancode-kp-000* 177) 
+(define *constant-sdl-scancode-thousandsseparator* 178) 
+(define *constant-sdl-scancode-decimalseparator* 179) 
+(define *constant-sdl-scancode-currencyunit* 180) 
+(define *constant-sdl-scancode-currencysubunit* 181) 
+(define *constant-sdl-scancode-kp-leftparen* 182) 
+(define *constant-sdl-scancode-kp-rightparen* 183) 
+(define *constant-sdl-scancode-kp-leftbrace* 184) 
+(define *constant-sdl-scancode-kp-rightbrace* 185) 
+(define *constant-sdl-scancode-kp-tab* 186) 
+(define *constant-sdl-scancode-kp-backspace* 187) 
+(define *constant-sdl-scancode-kp-a* 188) 
+(define *constant-sdl-scancode-kp-b* 189) 
+(define *constant-sdl-scancode-kp-c* 190) 
+(define *constant-sdl-scancode-kp-d* 191) 
+(define *constant-sdl-scancode-kp-e* 192) 
+(define *constant-sdl-scancode-kp-f* 193) 
+(define *constant-sdl-scancode-kp-xor* 194) 
+(define *constant-sdl-scancode-kp-power* 195) 
+(define *constant-sdl-scancode-kp-percent* 196) 
+(define *constant-sdl-scancode-kp-less* 197) 
+(define *constant-sdl-scancode-kp-greater* 198) 
+(define *constant-sdl-scancode-kp-ampersand* 199) 
+(define *constant-sdl-scancode-kp-dblampersand* 200) 
+(define *constant-sdl-scancode-kp-verticalbar* 201) 
+(define *constant-sdl-scancode-kp-dblverticalbar* 202) 
+(define *constant-sdl-scancode-kp-colon* 203) 
+(define *constant-sdl-scancode-kp-hash* 204) 
+(define *constant-sdl-scancode-kp-space* 205) 
+(define *constant-sdl-scancode-kp-at* 206) 
+(define *constant-sdl-scancode-kp-exclam* 207) 
+(define *constant-sdl-scancode-kp-memstore* 208) 
+(define *constant-sdl-scancode-kp-memrecall* 209) 
+(define *constant-sdl-scancode-kp-memclear* 210) 
+(define *constant-sdl-scancode-kp-memadd* 211) 
+(define *constant-sdl-scancode-kp-memsubtract* 212) 
+(define *constant-sdl-scancode-kp-memmultiply* 213) 
+(define *constant-sdl-scancode-kp-memdivide* 214) 
+(define *constant-sdl-scancode-kp-plusminus* 215) 
+(define *constant-sdl-scancode-kp-clear* 216) 
+(define *constant-sdl-scancode-kp-clearentry* 217) 
+(define *constant-sdl-scancode-kp-binary* 218) 
+(define *constant-sdl-scancode-kp-octal* 219) 
+(define *constant-sdl-scancode-kp-decimal* 220) 
+(define *constant-sdl-scancode-kp-hexadecimal* 221) 
+(define *constant-sdl-scancode-lctrl* 224) 
+(define *constant-sdl-scancode-lshift* 225) 
+(define *constant-sdl-scancode-lalt* 226) 
+(define *constant-sdl-scancode-lgui* 227) 
+(define *constant-sdl-scancode-rctrl* 228) 
+(define *constant-sdl-scancode-rshift* 229) 
+(define *constant-sdl-scancode-ralt* 230) 
+(define *constant-sdl-scancode-rgui* 231) 
+(define *constant-sdl-scancode-mode* 257) 
+(define *constant-sdl-scancode-audionext* 258) 
+(define *constant-sdl-scancode-audioprev* 259) 
+(define *constant-sdl-scancode-audiostop* 260) 
+(define *constant-sdl-scancode-audioplay* 261) 
+(define *constant-sdl-scancode-audiomute* 262) 
+(define *constant-sdl-scancode-mediaselect* 263) 
+(define *constant-sdl-scancode-www* 264) 
+(define *constant-sdl-scancode-mail* 265) 
+(define *constant-sdl-scancode-calculator* 266) 
+(define *constant-sdl-scancode-computer* 267) 
+(define *constant-sdl-scancode-ac-search* 268) 
+(define *constant-sdl-scancode-ac-home* 269) 
+(define *constant-sdl-scancode-ac-back* 270) 
+(define *constant-sdl-scancode-ac-forward* 271) 
+(define *constant-sdl-scancode-ac-stop* 272) 
+(define *constant-sdl-scancode-ac-refresh* 273) 
+(define *constant-sdl-scancode-ac-bookmarks* 274) 
+(define *constant-sdl-scancode-brightnessdown* 275) 
+(define *constant-sdl-scancode-brightnessup* 276) 
+(define *constant-sdl-scancode-displayswitch* 277) 
+(define *constant-sdl-scancode-kbdillumtoggle* 278) 
+(define *constant-sdl-scancode-kbdillumdown* 279) 
+(define *constant-sdl-scancode-kbdillumup* 280) 
+(define *constant-sdl-scancode-eject* 281) 
+(define *constant-sdl-scancode-sleep* 282) 
+(define *constant-sdl-scancode-app1* 283) 
+(define *constant-sdl-scancode-app2* 284) 
+(define *constant-sdl-scancode-audiorewind* 285) 
+(define *constant-sdl-scancode-audiofastforward* 286) 
+(define *constant-sdl-scancode-softleft* 287) 
+(define *constant-sdl-scancode-softright* 288) 
+(define *constant-sdl-scancode-call* 289) 
+(define *constant-sdl-scancode-endcall* 290) 
+(define *constant-sdl-num-scancodes* 512) 
 
 
+
+
+(define *keyboard-fn-vector* (make-vector 516 #f)) ;; somewhat largeer than 512
+
+(define (register-keyboard-fn i fn)
+  (vector-set! *keyboard-fn-vector* i fn))
+
+(define (call-keyboard-fn i)
+  (let ((fn (vector-ref *keyboard-fn-vector* i)))
+    (cond
+     (fn (fn))
+     (#t (format #t "there is no keyboard fn dedicated to ~a ~%" i)))))
+
+
+(register-keyboard-fn *constant-sdl-scancode-unknown* (lambda () (format #t "user pressed sdl-scancode-unknown key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-a* (lambda () (format #t "user pressed sdl-scancode-a key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-b* (lambda () (format #t "user pressed sdl-scancode-b key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-c* (lambda () (format #t "user pressed sdl-scancode-c key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-d* (lambda () (format #t "user pressed sdl-scancode-d key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-e* (lambda () (format #t "user pressed sdl-scancode-e key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-f* (lambda () (format #t "user pressed sdl-scancode-f key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-g* (lambda () (format #t "user pressed sdl-scancode-g key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-h* (lambda () (format #t "user pressed sdl-scancode-h key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-i* (lambda () (format #t "user pressed sdl-scancode-i key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-j* (lambda () (format #t "user pressed sdl-scancode-j key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-k* (lambda () (format #t "user pressed sdl-scancode-k key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-l* (lambda () (format #t "user pressed sdl-scancode-l key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-m* (lambda () (format #t "user pressed sdl-scancode-m key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-n* (lambda () (format #t "user pressed sdl-scancode-n key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-o* (lambda () (format #t "user pressed sdl-scancode-o key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-p* (lambda () (format #t "user pressed sdl-scancode-p key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-q* (lambda () (format #t "user pressed sdl-scancode-q key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-r* (lambda () (format #t "user pressed sdl-scancode-r key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-s* (lambda () (format #t "user pressed sdl-scancode-s key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-t* (lambda () (format #t "user pressed sdl-scancode-t key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-u* (lambda () (format #t "user pressed sdl-scancode-u key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-v* (lambda () (format #t "user pressed sdl-scancode-v key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-w* (lambda () (format #t "user pressed sdl-scancode-w key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-x* (lambda () (format #t "user pressed sdl-scancode-x key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-y* (lambda () (format #t "user pressed sdl-scancode-y key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-z* (lambda () (format #t "user pressed sdl-scancode-z key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-1* (lambda () (format #t "user pressed sdl-scancode-1 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-2* (lambda () (format #t "user pressed sdl-scancode-2 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-3* (lambda () (format #t "user pressed sdl-scancode-3 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-4* (lambda () (format #t "user pressed sdl-scancode-4 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-5* (lambda () (format #t "user pressed sdl-scancode-5 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-6* (lambda () (format #t "user pressed sdl-scancode-6 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-7* (lambda () (format #t "user pressed sdl-scancode-7 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-8* (lambda () (format #t "user pressed sdl-scancode-8 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-9* (lambda () (format #t "user pressed sdl-scancode-9 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-0* (lambda () (format #t "user pressed sdl-scancode-0 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-return* (lambda () (format #t "user pressed sdl-scancode-return key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-escape* (lambda () (format #t "user pressed sdl-scancode-escape key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-backspace* (lambda () (format #t "user pressed sdl-scancode-backspace key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-tab* (lambda () (format #t "user pressed sdl-scancode-tab key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-space* (lambda () (format #t "user pressed sdl-scancode-space key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-minus* (lambda () (format #t "user pressed sdl-scancode-minus key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-equals* (lambda () (format #t "user pressed sdl-scancode-equals key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-leftbracket* (lambda () (format #t "user pressed sdl-scancode-leftbracket key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-rightbracket* (lambda () (format #t "user pressed sdl-scancode-rightbracket key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-backslash* (lambda () (format #t "user pressed sdl-scancode-backslash key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-nonushash* (lambda () (format #t "user pressed sdl-scancode-nonushash key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-semicolon* (lambda () (format #t "user pressed sdl-scancode-semicolon key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-apostrophe* (lambda () (format #t "user pressed sdl-scancode-apostrophe key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-grave* (lambda () (format #t "user pressed sdl-scancode-grave key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-comma* (lambda () (format #t "user pressed sdl-scancode-comma key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-period* (lambda () (format #t "user pressed sdl-scancode-period key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-slash* (lambda () (format #t "user pressed sdl-scancode-slash key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-capslock* (lambda () (format #t "user pressed sdl-scancode-capslock key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-f1* (lambda () (format #t "user pressed sdl-scancode-f1 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-f2* (lambda () (format #t "user pressed sdl-scancode-f2 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-f3* (lambda () (format #t "user pressed sdl-scancode-f3 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-f4* (lambda () (format #t "user pressed sdl-scancode-f4 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-f5* (lambda () (format #t "user pressed sdl-scancode-f5 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-f6* (lambda () (format #t "user pressed sdl-scancode-f6 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-f7* (lambda () (format #t "user pressed sdl-scancode-f7 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-f8* (lambda () (format #t "user pressed sdl-scancode-f8 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-f9* (lambda () (format #t "user pressed sdl-scancode-f9 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-f10* (lambda () (format #t "user pressed sdl-scancode-f10 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-f11* (lambda () (format #t "user pressed sdl-scancode-f11 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-f12* (lambda () (format #t "user pressed sdl-scancode-f12 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-printscreen* (lambda () (format #t "user pressed sdl-scancode-printscreen key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-scrolllock* (lambda () (format #t "user pressed sdl-scancode-scrolllock key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-pause* (lambda () (format #t "user pressed sdl-scancode-pause key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-insert* (lambda () (format #t "user pressed sdl-scancode-insert key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-home* (lambda () (format #t "user pressed sdl-scancode-home key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-pageup* (lambda () (format #t "user pressed sdl-scancode-pageup key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-delete* (lambda () (format #t "user pressed sdl-scancode-delete key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-end* (lambda () (format #t "user pressed sdl-scancode-end key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-pagedown* (lambda () (format #t "user pressed sdl-scancode-pagedown key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-right* (lambda () (format #t "user pressed sdl-scancode-right key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-left* (lambda () (format #t "user pressed sdl-scancode-left key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-down* (lambda () (format #t "user pressed sdl-scancode-down key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-up* (lambda () (format #t "user pressed sdl-scancode-up key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-numlockclear* (lambda () (format #t "user pressed sdl-scancode-numlockclear key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-divide* (lambda () (format #t "user pressed sdl-scancode-kp-divide key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-multiply* (lambda () (format #t "user pressed sdl-scancode-kp-multiply key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-minus* (lambda () (format #t "user pressed sdl-scancode-kp-minus key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-plus* (lambda () (format #t "user pressed sdl-scancode-kp-plus key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-enter* (lambda () (format #t "user pressed sdl-scancode-kp-enter key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-1* (lambda () (format #t "user pressed sdl-scancode-kp-1 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-2* (lambda () (format #t "user pressed sdl-scancode-kp-2 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-3* (lambda () (format #t "user pressed sdl-scancode-kp-3 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-4* (lambda () (format #t "user pressed sdl-scancode-kp-4 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-5* (lambda () (format #t "user pressed sdl-scancode-kp-5 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-6* (lambda () (format #t "user pressed sdl-scancode-kp-6 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-7* (lambda () (format #t "user pressed sdl-scancode-kp-7 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-8* (lambda () (format #t "user pressed sdl-scancode-kp-8 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-9* (lambda () (format #t "user pressed sdl-scancode-kp-9 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-0* (lambda () (format #t "user pressed sdl-scancode-kp-0 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-period* (lambda () (format #t "user pressed sdl-scancode-kp-period key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-nonusbackslash* (lambda () (format #t "user pressed sdl-scancode-nonusbackslash key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-application* (lambda () (format #t "user pressed sdl-scancode-application key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-power* (lambda () (format #t "user pressed sdl-scancode-power key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-equals* (lambda () (format #t "user pressed sdl-scancode-kp-equals key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-f13* (lambda () (format #t "user pressed sdl-scancode-f13 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-f14* (lambda () (format #t "user pressed sdl-scancode-f14 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-f15* (lambda () (format #t "user pressed sdl-scancode-f15 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-f16* (lambda () (format #t "user pressed sdl-scancode-f16 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-f17* (lambda () (format #t "user pressed sdl-scancode-f17 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-f18* (lambda () (format #t "user pressed sdl-scancode-f18 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-f19* (lambda () (format #t "user pressed sdl-scancode-f19 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-f20* (lambda () (format #t "user pressed sdl-scancode-f20 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-f21* (lambda () (format #t "user pressed sdl-scancode-f21 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-f22* (lambda () (format #t "user pressed sdl-scancode-f22 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-f23* (lambda () (format #t "user pressed sdl-scancode-f23 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-f24* (lambda () (format #t "user pressed sdl-scancode-f24 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-execute* (lambda () (format #t "user pressed sdl-scancode-execute key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-help* (lambda () (format #t "user pressed sdl-scancode-help key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-menu* (lambda () (format #t "user pressed sdl-scancode-menu key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-select* (lambda () (format #t "user pressed sdl-scancode-select key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-stop* (lambda () (format #t "user pressed sdl-scancode-stop key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-again* (lambda () (format #t "user pressed sdl-scancode-again key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-undo* (lambda () (format #t "user pressed sdl-scancode-undo key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-cut* (lambda () (format #t "user pressed sdl-scancode-cut key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-copy* (lambda () (format #t "user pressed sdl-scancode-copy key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-paste* (lambda () (format #t "user pressed sdl-scancode-paste key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-find* (lambda () (format #t "user pressed sdl-scancode-find key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-mute* (lambda () (format #t "user pressed sdl-scancode-mute key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-volumeup* (lambda () (format #t "user pressed sdl-scancode-volumeup key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-volumedown* (lambda () (format #t "user pressed sdl-scancode-volumedown key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-lockingcapslock* (lambda () (format #t "user pressed sdl-scancode-lockingcapslock key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-lockingnumlock* (lambda () (format #t "user pressed sdl-scancode-lockingnumlock key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-lockingscrolllock* (lambda () (format #t "user pressed sdl-scancode-lockingscrolllock key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-comma* (lambda () (format #t "user pressed sdl-scancode-kp-comma key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-equalsas400* (lambda () (format #t "user pressed sdl-scancode-kp-equalsas400 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-international1* (lambda () (format #t "user pressed sdl-scancode-international1 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-international2* (lambda () (format #t "user pressed sdl-scancode-international2 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-international3* (lambda () (format #t "user pressed sdl-scancode-international3 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-international4* (lambda () (format #t "user pressed sdl-scancode-international4 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-international5* (lambda () (format #t "user pressed sdl-scancode-international5 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-international6* (lambda () (format #t "user pressed sdl-scancode-international6 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-international7* (lambda () (format #t "user pressed sdl-scancode-international7 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-international8* (lambda () (format #t "user pressed sdl-scancode-international8 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-international9* (lambda () (format #t "user pressed sdl-scancode-international9 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-lang1* (lambda () (format #t "user pressed sdl-scancode-lang1 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-lang2* (lambda () (format #t "user pressed sdl-scancode-lang2 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-lang3* (lambda () (format #t "user pressed sdl-scancode-lang3 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-lang4* (lambda () (format #t "user pressed sdl-scancode-lang4 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-lang5* (lambda () (format #t "user pressed sdl-scancode-lang5 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-lang6* (lambda () (format #t "user pressed sdl-scancode-lang6 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-lang7* (lambda () (format #t "user pressed sdl-scancode-lang7 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-lang8* (lambda () (format #t "user pressed sdl-scancode-lang8 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-lang9* (lambda () (format #t "user pressed sdl-scancode-lang9 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-alterase* (lambda () (format #t "user pressed sdl-scancode-alterase key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-sysreq* (lambda () (format #t "user pressed sdl-scancode-sysreq key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-cancel* (lambda () (format #t "user pressed sdl-scancode-cancel key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-clear* (lambda () (format #t "user pressed sdl-scancode-clear key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-prior* (lambda () (format #t "user pressed sdl-scancode-prior key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-return2* (lambda () (format #t "user pressed sdl-scancode-return2 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-separator* (lambda () (format #t "user pressed sdl-scancode-separator key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-out* (lambda () (format #t "user pressed sdl-scancode-out key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-oper* (lambda () (format #t "user pressed sdl-scancode-oper key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-clearagain* (lambda () (format #t "user pressed sdl-scancode-clearagain key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-crsel* (lambda () (format #t "user pressed sdl-scancode-crsel key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-exsel* (lambda () (format #t "user pressed sdl-scancode-exsel key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-00* (lambda () (format #t "user pressed sdl-scancode-kp-00 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-000* (lambda () (format #t "user pressed sdl-scancode-kp-000 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-thousandsseparator* (lambda () (format #t "user pressed sdl-scancode-thousandsseparator key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-decimalseparator* (lambda () (format #t "user pressed sdl-scancode-decimalseparator key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-currencyunit* (lambda () (format #t "user pressed sdl-scancode-currencyunit key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-currencysubunit* (lambda () (format #t "user pressed sdl-scancode-currencysubunit key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-leftparen* (lambda () (format #t "user pressed sdl-scancode-kp-leftparen key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-rightparen* (lambda () (format #t "user pressed sdl-scancode-kp-rightparen key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-leftbrace* (lambda () (format #t "user pressed sdl-scancode-kp-leftbrace key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-rightbrace* (lambda () (format #t "user pressed sdl-scancode-kp-rightbrace key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-tab* (lambda () (format #t "user pressed sdl-scancode-kp-tab key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-backspace* (lambda () (format #t "user pressed sdl-scancode-kp-backspace key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-a* (lambda () (format #t "user pressed sdl-scancode-kp-a key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-b* (lambda () (format #t "user pressed sdl-scancode-kp-b key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-c* (lambda () (format #t "user pressed sdl-scancode-kp-c key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-d* (lambda () (format #t "user pressed sdl-scancode-kp-d key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-e* (lambda () (format #t "user pressed sdl-scancode-kp-e key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-f* (lambda () (format #t "user pressed sdl-scancode-kp-f key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-xor* (lambda () (format #t "user pressed sdl-scancode-kp-xor key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-power* (lambda () (format #t "user pressed sdl-scancode-kp-power key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-percent* (lambda () (format #t "user pressed sdl-scancode-kp-percent key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-less* (lambda () (format #t "user pressed sdl-scancode-kp-less key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-greater* (lambda () (format #t "user pressed sdl-scancode-kp-greater key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-ampersand* (lambda () (format #t "user pressed sdl-scancode-kp-ampersand key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-dblampersand* (lambda () (format #t "user pressed sdl-scancode-kp-dblampersand key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-verticalbar* (lambda () (format #t "user pressed sdl-scancode-kp-verticalbar key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-dblverticalbar* (lambda () (format #t "user pressed sdl-scancode-kp-dblverticalbar key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-colon* (lambda () (format #t "user pressed sdl-scancode-kp-colon key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-hash* (lambda () (format #t "user pressed sdl-scancode-kp-hash key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-space* (lambda () (format #t "user pressed sdl-scancode-kp-space key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-at* (lambda () (format #t "user pressed sdl-scancode-kp-at key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-exclam* (lambda () (format #t "user pressed sdl-scancode-kp-exclam key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-memstore* (lambda () (format #t "user pressed sdl-scancode-kp-memstore key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-memrecall* (lambda () (format #t "user pressed sdl-scancode-kp-memrecall key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-memclear* (lambda () (format #t "user pressed sdl-scancode-kp-memclear key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-memadd* (lambda () (format #t "user pressed sdl-scancode-kp-memadd key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-memsubtract* (lambda () (format #t "user pressed sdl-scancode-kp-memsubtract key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-memmultiply* (lambda () (format #t "user pressed sdl-scancode-kp-memmultiply key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-memdivide* (lambda () (format #t "user pressed sdl-scancode-kp-memdivide key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-plusminus* (lambda () (format #t "user pressed sdl-scancode-kp-plusminus key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-clear* (lambda () (format #t "user pressed sdl-scancode-kp-clear key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-clearentry* (lambda () (format #t "user pressed sdl-scancode-kp-clearentry key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-binary* (lambda () (format #t "user pressed sdl-scancode-kp-binary key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-octal* (lambda () (format #t "user pressed sdl-scancode-kp-octal key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-decimal* (lambda () (format #t "user pressed sdl-scancode-kp-decimal key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kp-hexadecimal* (lambda () (format #t "user pressed sdl-scancode-kp-hexadecimal key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-lctrl* (lambda () (format #t "user pressed sdl-scancode-lctrl key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-lshift* (lambda () (format #t "user pressed sdl-scancode-lshift key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-lalt* (lambda () (format #t "user pressed sdl-scancode-lalt key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-lgui* (lambda () (format #t "user pressed sdl-scancode-lgui key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-rctrl* (lambda () (format #t "user pressed sdl-scancode-rctrl key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-rshift* (lambda () (format #t "user pressed sdl-scancode-rshift key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-ralt* (lambda () (format #t "user pressed sdl-scancode-ralt key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-rgui* (lambda () (format #t "user pressed sdl-scancode-rgui key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-mode* (lambda () (format #t "user pressed sdl-scancode-mode key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-audionext* (lambda () (format #t "user pressed sdl-scancode-audionext key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-audioprev* (lambda () (format #t "user pressed sdl-scancode-audioprev key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-audiostop* (lambda () (format #t "user pressed sdl-scancode-audiostop key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-audioplay* (lambda () (format #t "user pressed sdl-scancode-audioplay key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-audiomute* (lambda () (format #t "user pressed sdl-scancode-audiomute key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-mediaselect* (lambda () (format #t "user pressed sdl-scancode-mediaselect key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-www* (lambda () (format #t "user pressed sdl-scancode-www key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-mail* (lambda () (format #t "user pressed sdl-scancode-mail key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-calculator* (lambda () (format #t "user pressed sdl-scancode-calculator key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-computer* (lambda () (format #t "user pressed sdl-scancode-computer key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-ac-search* (lambda () (format #t "user pressed sdl-scancode-ac-search key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-ac-home* (lambda () (format #t "user pressed sdl-scancode-ac-home key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-ac-back* (lambda () (format #t "user pressed sdl-scancode-ac-back key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-ac-forward* (lambda () (format #t "user pressed sdl-scancode-ac-forward key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-ac-stop* (lambda () (format #t "user pressed sdl-scancode-ac-stop key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-ac-refresh* (lambda () (format #t "user pressed sdl-scancode-ac-refresh key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-ac-bookmarks* (lambda () (format #t "user pressed sdl-scancode-ac-bookmarks key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-brightnessdown* (lambda () (format #t "user pressed sdl-scancode-brightnessdown key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-brightnessup* (lambda () (format #t "user pressed sdl-scancode-brightnessup key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-displayswitch* (lambda () (format #t "user pressed sdl-scancode-displayswitch key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kbdillumtoggle* (lambda () (format #t "user pressed sdl-scancode-kbdillumtoggle key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kbdillumdown* (lambda () (format #t "user pressed sdl-scancode-kbdillumdown key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-kbdillumup* (lambda () (format #t "user pressed sdl-scancode-kbdillumup key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-eject* (lambda () (format #t "user pressed sdl-scancode-eject key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-sleep* (lambda () (format #t "user pressed sdl-scancode-sleep key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-app1* (lambda () (format #t "user pressed sdl-scancode-app1 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-app2* (lambda () (format #t "user pressed sdl-scancode-app2 key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-audiorewind* (lambda () (format #t "user pressed sdl-scancode-audiorewind key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-audiofastforward* (lambda () (format #t "user pressed sdl-scancode-audiofastforward key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-softleft* (lambda () (format #t "user pressed sdl-scancode-softleft key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-softright* (lambda () (format #t "user pressed sdl-scancode-softright key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-call* (lambda () (format #t "user pressed sdl-scancode-call key ~%")))
+(register-keyboard-fn *constant-sdl-scancode-endcall* (lambda () (format #t "user pressed sdl-scancode-endcall key ~%")))
+(register-keyboard-fn *constant-sdl-num-scancodes* (lambda () (format #t "user pressed sdl-num-scancodes key ~%")))
+
+#|
+
+int SDL_FillRect (SDL_Surface * dst, const SDL_Rect * rect, Uint32 color);
+
+typedef struct SDL_Rect
+{
+    int x, y;
+    int w, h;
+} SDL_Rect;
+
+
+================= SDL_Rect ============= 
+SDL_Rect has size in bytes of : 16
+SDL_Rect x : 0
+SDL_Rect y : 4
+SDL_Rect w: 8
+SDL_Rect h : 12
+
+
+signed int prefix s ; we can see x takes 4 bytes 0 1 2 3 ; since 4 bytes is 32bits  named is s32 
+
+x sint 0
+y sint 4
+w sint 8
+h sint 12
+
+need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8 ; offset h = 12 
+
+
+|#
+(define (make-sdl-rect x y w h)
+  (let* ((size 16)
+	 (bv (make-bytevector size 0)))
+    (bytevector-s32-native-set! bv 0 x);; x
+    (bytevector-s32-native-set! bv 4 y);; y
+    (bytevector-s32-native-set! bv 8 w);; width
+    (bytevector-s32-native-set! bv 12 h);; height
+    bv))
+
+(define (make-sdl-rect-pointer x y w h)
+  (bytevector->pointer (make-sdl-rect x y w h)))
+
+
+(define (make-sdl-color red green blue)  (logior (ash red 16) (ash green 8) blue))
+
+(define *mouse-x* 0)
+(define *mouse-y* 0)
 
 ;; keep looping until user quits window
 ;; https://lazyfoo.net/tutorials/SDL/03_event_driven_programming/index.php
@@ -605,13 +2117,15 @@ MOUSEMOTIONEVENT yrel : 32          bytevector-s32-ref event 32 (endianness litt
     (define surface (sdl-get-window-surface window))
     (define hello-bitmap (sdl-load-bmp "hello.bmp"))
     (define quit #f)
+
+    (sdl-show-cursor 0) ;; 0=false 1=truthy
     ;; poll
     ;; create a C union struct the size of SDL_Event
     ;; and then manually populate struct obviating advantages of
     ;; make SDL_Event which is 32 bytes in size
     (define event (let ((size 36)(fill 0))
 		    (make-bytevector size fill)))
-    
+    (define first-run #t)
     
     (while (not quit)
 	   ;; poll for an event
@@ -619,33 +2133,74 @@ MOUSEMOTIONEVENT yrel : 32          bytevector-s32-ref event 32 (endianness litt
 		  ;; if was new event then {event} itself will have the contents of it
 		  ;; (endianness big)
 		  ;; (endianness little)
-		  (let ((type (bytevector-u32-ref event 0 (endianness little))))
+		  (let ((type (bytevector-u32-native-ref event 0)))
 		    (cond
 		     ((= type *constant-sdl-quit*) ;; ======== quit event ==================
 		      (format #t "the user quit the application !~%")
 		      ;; if we quit - set quit flag to true and exit
-		      (let ((type (bytevector-u32-ref event 0 (endianness little)))
-			    (timestamp (bytevector-u32-ref event 4 (endianness little))))
+		      (let ((type (bytevector-u32-native-ref event 0))
+			    (timestamp (bytevector-u32-native-ref event 4)))
 			(set! quit #t)))
 		     ((= type *constant-sdl-keydown*) ;; ======== keydown event ==================
-		      (format #t "the user pressed a key !~%"))
+		      (let ((type (bytevector-u32-native-ref event 0))
+			    (timestamp (bytevector-u32-native-ref event 4))
+			    (windowid (bytevector-u32-native-ref event 8))
+			    (state (bytevector-u8-ref event 12))
+			    (repeat (bytevector-u8-ref event 13))
+			    (padding2 (bytevector-u8-ref event 13))
+			    (padding3 (bytevector-u8-ref event 14 ))
+			    (keysym-scancode (bytevector-u32-native-ref event 16 ))
+			    (keysym-sym (bytevector-s32-native-ref event 20 ))
+			    (keysym-mod (bytevector-u16-native-ref event 24 )))
+
+			;; do something first time this is run
+			(when first-run
+			  ;; allows us to escape the gui event loop easily
+			  (register-keyboard-fn *constant-sdl-scancode-escape* (lambda () (set! quit #t)(format #t "user quit ! ~%")))
+			  (set! first-run #f))
+			
+			;; call relevant key handler
+			(call-keyboard-fn keysym-scancode)
+			#|
+			(cond
+			 ((= keysym-scancode *constant-sdl-scancode-a*) (format #t "user pressed A key !~%"))
+			 ((= keysym-scancode *constant-sdl-scancode-b*) (format #t "user pressed B key !~%"))
+			 ((= keysym-scancode *constant-sdl-scancode-c*) (format #t "user pressed C key !~%"))
+			 ((= keysym-scancode *constant-sdl-scancode-d*) (format #t "user pressed D key !~%"))
+			 ((= keysym-scancode *constant-sdl-scancode-e*) (format #t "user pressed E key !~%"))
+			(#t (format #t "user pressed key (scancode ~a) !~%" keysym-scancode)))
+			|#
+			
+			))
 		     ((= type *constant-sdl-keyup*) ;; ======== keyup event ==================
-		      (format #t "the user released a key !~%"))
+		      ;;(format #t "the user released a key !~%")
+		      #f
+		      )
 		     ((= type *constant-sdl-mousemotion*) ;; ======== mouse motion event ==================
-		      (let ((type (bytevector-u32-ref event 0 (endianness little)))
-			    (timestamp (bytevector-u32-ref event 4 (endianness little)))
-			    (windowid (bytevector-u32-ref event 8 (endianness little)))
-			    (state (bytevector-u32-ref event 12 (endianness little)))
-			    (x (bytevector-s32-ref event 20 (endianness little)))
-			    (y (bytevector-s32-ref event 24 (endianness little)))
-			    (xrel (bytevector-s32-ref event 28 (endianness little)))
-			    (yrel (bytevector-s32-ref event 32 (endianness little))))
+		      (let ((type (bytevector-u32-native-ref event 0 ))
+			    (timestamp (bytevector-u32-native-ref event 4 ))
+			    (windowid (bytevector-u32-native-ref event 8 ))
+			    (state (bytevector-u32-native-ref event 12 ))
+			    (x (bytevector-s32-native-ref event 20 ))
+			    (y (bytevector-s32-native-ref event 24 ))
+			    (xrel (bytevector-s32-native-ref event 28 ))
+			    (yrel (bytevector-s32-native-ref event 32 )))
 			(format #t "mouse move (~a ~a ~a ~a " type timestamp windowid state)
-			(format #t " (pos:~a ~a) (rel:~a ~a) ~%" x y xrel yrel)))
+			(format #t " (pos:~a ~a) (rel:~a ~a) ~%" x y xrel yrel)
+			(set! *mouse-x* x)
+			(set! *mouse-y* y)))
 		     (#t #f))))
-		  
+
+	   ;; clear the surface?
+	   (sdl-fill-rect surface *null* 0)	   
 	   ;; apply image
 	   (sdl-blit-surface hello-bitmap *null* surface *null*)
+	   ;; random rectangle somewhere
+	   (sdl-fill-rect surface (make-sdl-rect-pointer 400 100 50 50) (make-sdl-color 255 0 0))
+	   (sdl-fill-rect surface (make-sdl-rect-pointer 500 100 50 50) (make-sdl-color 0 0 255))
+	   (sdl-fill-rect surface (make-sdl-rect-pointer 600 100 50 50) (make-sdl-color 0 255 0))
+	   (sdl-fill-rect surface (make-sdl-rect-pointer (- *mouse-x* 25) (- *mouse-y* 25) 50 50) (make-sdl-color 0 0 255))
+	   
 	   ;; update surface
 	   (sdl-update-window-surface window)
 	   ) ;; while not quit 
@@ -653,6 +2208,8 @@ MOUSEMOTIONEVENT yrel : 32          bytevector-s32-ref event 32 (endianness litt
     (sdl-free-surface hello-bitmap)
     (sdl-destroy-window window)
     (sdl-quit)))
+
+
 
 
 
