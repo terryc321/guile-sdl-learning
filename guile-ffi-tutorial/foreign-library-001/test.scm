@@ -1,5 +1,164 @@
 
+(load "pixelformat/pixelformat.scm")
+
 #|
+
+guile sdl2 ffi file 
+
+LTDL_LIBRARY_PATH=./pixelformat/ guile
+
+file:///usr/share/doc/guile-3.0.10/ref/Foreign-Pointers.html
+(use-modules (system foreign))
+%null-pointer
+
+file:///usr/share/doc/guile-3.0.10/ref/Foreign-Libraries.html
+(use-modules (system foreign-library))
+
+
+template for foreign function calls
+all pointers are a single quoted asterisk '*
+unsigned uint8 unit16 unit32 uint64  << check !
+signed sint8 sint16 sint32 sint64    >> check !
+
+(define sdl-XXXX
+  (foreign-library-function "libSDL2" "SDL_XXXXX"
+			    #:return-type '*
+                            #:arg-types (list '* '* uint32)))
+
+
+sdl foreign libraries found in directory { /usr/lib/x86_64-linux-gnu/ }
+
+libSDL-1.2.so.0
+libSDL-1.2.so.1.2.68
+libSDL2-2.0.so
+libSDL2-2.0.so.0
+libSDL2-2.0.so.0.3000.0
+libSDL2.a
+libSDL2_image-2.0.so.0
+libSDL2_image-2.0.so.0.800.2
+libSDL2main.a
+libSDL2_mixer-2.0.so
+libSDL2_mixer-2.0.so.0
+libSDL2_mixer-2.0.so.0.800.0
+libSDL2_mixer.a
+libSDL2_mixer.so                     <----- sdl2 sound shared library
+libSDL2.so                           <--------- SDL2 shared library
+libSDL2_test.a
+libSDL2_ttf-2.0.so                   
+libSDL2_ttf-2.0.so.0
+libSDL2_ttf-2.0.so.0.2200.0
+libSDL2_ttf.a
+libSDL2_ttf.so                      <----- sdl2 true type font shared library
+
+
+suppose we have to convert this expression in C to guile scheme ffi code 
+
+gScreenSurface->format
+
+question 1 . what is the structure ? here it is an SDL_Surface
+
+typedef struct SDL_Surface
+{
+    Uint32 flags;               /**< Read-only */
+    SDL_PixelFormat *format;    /**< Read-only */  <<<<<<<<< here is the format member
+    int w, h;                   /**< Read-only */
+    int pitch;                  /**< Read-only */
+    void *pixels;               /**< Read-write */
+
+    /** Application data associated with the surface */
+    void *userdata;             /**< Read-write */
+
+    /** information needed for surfaces requiring locks */
+    int locked;                 /**< Read-only */
+
+    /** list of BlitMap that hold a reference to this surface */
+    void *list_blitmap;         /**< Private */
+
+    /** clipping information */
+    SDL_Rect clip_rect;         /**< Read-only */
+
+    /** info for fast blit mapping to other surfaces */
+    SDL_BlitMap *map;           /**< Private */
+
+    /** Reference count -- used when freeing surface */
+    int refcount;               /**< Read-mostly */
+} SDL_Surface;
+
+
+question 2 . what is the offset of the format structure member in bytes from structure start ?
+
+we can write a C file to tell us this directly rather than guess
+
+#include <stdio.h>
+#include <stddef.h> 
+#include <SDL2/SDL.h>
+#include <cairo/cairo.h>
+
+int main(){
+
+  SDL_Surface sdl_surface;
+  fprintf(stdout,"================= SDL_Surface ============= \n");
+  fprintf(stdout,"SDL_Surface has size in bytes of : %zu\n" , sizeof(SDL_Surface));
+  fprintf(stdout,"SDL_Surface flags : offset %zu : size %zu\n" , offsetof(SDL_Surface, flags),sizeof(sdl_surface.flags));
+  fprintf(stdout,"SDL_Surface format : offset %zu : size %zu\n" , offsetof(SDL_Surface, format),sizeof(sdl_surface.format));
+  fprintf(stdout,"SDL_Surface w: offset %zu : size %zu\n" , offsetof(SDL_Surface,  w),sizeof(sdl_surface.w));
+  fprintf(stdout,"SDL_Surface h : offset %zu : size %zu\n" , offsetof(SDL_Surface, h),sizeof(sdl_surface.h));
+  fprintf(stdout,"SDL_Surface pitch :  offset %zu : size %zu\n" , offsetof(SDL_Surface, pitch),sizeof(sdl_surface.pitch));
+  fprintf(stdout,"SDL_Surface pixels : offset %zu : size %zu\n" , offsetof(SDL_Surface, pixels),sizeof(sdl_surface.pixels));
+  fprintf(stdout,"SDL_Surface userdata: offset %zu : size %zu\n" , offsetof(SDL_Surface,  userdata),sizeof(sdl_surface.userdata));
+  fprintf(stdout,"SDL_Surface locked : offset %zu : size %zu\n" , offsetof(SDL_Surface, locked),sizeof(sdl_surface.locked));
+  fprintf(stdout,"SDL_Surface list_blitmap : offset %zu : size %zu\n" , offsetof(SDL_Surface, list_blitmap),sizeof(sdl_surface.list_blitmap));
+  fprintf(stdout,"SDL_Surface clip_rect : offset %zu : size %zu\n" , offsetof(SDL_Surface, clip_rect),sizeof(sdl_surface.clip_rect));
+  fprintf(stdout,"SDL_Surface map : offset  %zu : size %zu\n" , offsetof(SDL_Surface, map),sizeof(sdl_surface.map));
+  fprintf(stdout,"SDL_Surface refcount : offset %zu : size %zu\n" , offsetof(SDL_Surface, refcount),sizeof(sdl_surface.refcount));
+
+}
+
+offsets and sizes are all in bytes for complete consistency across all types 
+
+================= SDL_Surface ============= 
+SDL_Surface has size in bytes of : 96
+SDL_Surface flags : offset 0 : size 4
+SDL_Surface format : offset 8 : size 8          <<<<<<<< here is our format member at offset 8 with size 8 bytes
+SDL_Surface w: offset 16 : size 4
+SDL_Surface h : offset 20 : size 4
+SDL_Surface pitch :  offset 24 : size 4
+SDL_Surface pixels : offset 32 : size 8
+SDL_Surface userdata: offset 40 : size 8
+SDL_Surface locked : offset 48 : size 4
+SDL_Surface list_blitmap : offset 56 : size 8
+SDL_Surface clip_rect : offset 64 : size 16
+SDL_Surface map : offset  80 : size 8
+SDL_Surface refcount : offset 88 : size 4
+
+
+question 3 : how do we fully code this up in guile scheme ?
+
+SDL_PixelFormat *format;  
+
+we simply need to convert byte offset 8 of pointer to another pointer
+
+(define gScreenSurface->format (make-pointer (+ (pointer-address gSurface) 8)))
+this will not work as pointer value is actually encoded in the surface structure itself
+take 8 bytes from pointer address (+ (pointer-address gSurface) 8) to  (+ (pointer-address gSurface) 16)
+then form pointer from this
+
+
+
+
+> guile
+(load "test.scm")
+(skooldaze2)
+- mouse x,y
+- keyboard io
+- sdl-fillrect coloured squares
+
+
+< building guile scheme from github repository > 
+
+git clone -b 'v2.0' --single-branch --depth 1 https://github.com/git/git.git
+git clone --branch 'main' --single-branch --depth 1 https://cgit.git.savannah.gnu.org/cgit/guile.git
+git clone --branch 'main' --single-branch --depth 1 https://git.savannah.gnu.org/git/guile.git
 
 single byte does not have an endianness
 our computer is little endianness
@@ -425,6 +584,24 @@ In addition, the symbol * is used by convention to denote pointer types. Procedu
 			    #:return-type int
                             #:arg-types (list '*)))
 
+
+#|
+https://lazyfoo.net/tutorials/SDL/05_optimized_surface_loading_and_soft_stretching/index.php
+
+SDL_Surface* SDL_ConvertSurface
+(SDL_Surface * src, const SDL_PixelFormat * fmt, Uint32 flags;)
+|#
+(define sdl-convert-surface
+  (foreign-library-function "libSDL2" "SDL_ConvertSurface"
+			    #:return-type '*
+                            #:arg-types (list '* '* uint32)))
+
+
+
+
+
+
+;; ======================== cairo stuff ========================================
 
 #|
 cairo_surface_t *cairosurf = cairo_image_surface_create_for_data (
@@ -1793,9 +1970,6 @@ typedef enum
 (define *constant-sdl-scancode-endcall* 290) 
 (define *constant-sdl-num-scancodes* 512) 
 
-
-
-
 (define *keyboard-fn-vector* (make-vector 516 #f)) ;; somewhat largeer than 512
 
 (define (register-keyboard-fn i fn)
@@ -2115,7 +2289,50 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
     (sdl-init *constant-sdl-init-video*)
     (define window (create-window "hello world" width height))
     (define surface (sdl-get-window-surface window))
-    (define hello-bitmap (sdl-load-bmp "hello.bmp"))
+
+    (format #t "surface pointer ptr ~a~%" surface)
+    ;;(format #t "ptr->format ~a~%" (pixelformat (pointer-address surface)))
+    (output-check)
+    ;; 
+    (define hello-bitmap *null*)
+    (define loaded-surface (sdl-load-bmp "hello.bmp"))
+    (format #t "surface pointer ~a~%" surface)
+    (format #t "surface address ~x~%" (pointer-address surface));; hex value
+    (format #t "surface->format address ~x~%" (+ 8 (pointer-address surface)));; hex value
+    (format #t "C pixelformat : surface->format address ~a~%" (pixelformat surface))
+
+    ;; display actual bytes that make up surface->format a (SDL_PixelFormat *ptr)
+    (pixelformat2 surface)
+    
+    ;; display bytes we think we see
+    (let* ((length 8)
+	   (offset 8)
+	   (bv (pointer->bytevector surface length offset)))
+      (format #t "scheme byte 0 : ~a ~%" (bytevector-u8-ref bv 0))
+      (format #t "scheme byte 1 : ~a ~%" (bytevector-u8-ref bv 1))
+      (format #t "scheme byte 2 : ~a ~%" (bytevector-u8-ref bv 2))
+      (format #t "scheme byte 3 : ~a ~%" (bytevector-u8-ref bv 3))
+      (format #t "scheme byte 4 : ~a ~%" (bytevector-u8-ref bv 4))
+      (format #t "scheme byte 5 : ~a ~%" (bytevector-u8-ref bv 5))
+      (format #t "scheme byte 6 : ~a ~%" (bytevector-u8-ref bv 6))
+      (format #t "scheme byte 7 : ~a ~%" (bytevector-u8-ref bv 7)))
+     
+    ;;(define optimized-surface %null-pointer)    
+    (define optimized-surface
+      (let ((screen-format (pixelformat surface)))
+	(sdl-convert-surface loaded-surface screen-format 0)))
+    
+    (cond
+     ((equal? *null* optimized-surface)
+      (set! hello-bitmap loaded-surface)
+      (format #t "unable to optimize image~%")
+      ;;(error "unable to optimize image ~a" (sdl-get-error))
+      ) ;; c-string -> scheme string required     
+     (#t (set! hello-bitmap optimized-surface)
+	 (format #t "created optimized surface ~a~%" optimized-surface)
+	 (sdl-free-surface loaded-surface)))
+    
+    	
     (define quit #f)
 
     (sdl-show-cursor 0) ;; 0=false 1=truthy
@@ -2334,6 +2551,10 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
 
   
 
+
+(define (test-loop)
+  (skooldaze2)
+  (test-loop))
 
 
 
