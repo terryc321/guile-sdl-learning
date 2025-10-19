@@ -68,9 +68,7 @@ int main(){
   fprintf(stdout,"size of SDL_Event is %lu\n", sizeof(SDL_Event));
 
   
-  fprintf(stdout,"SDL_MOUSEMOTION event type is %lu\n", SDL_MOUSEMOTION );
-  fprintf(stdout,"SDL_MOUSEMOTION event type is %lu\n", SDL_MOUSEMOTION );
-  
+  fprintf(stdout,"SDL_MOUSEMOTION event type is %d\n", SDL_MOUSEMOTION ); 
 
   fprintf(stdout,"================= SDL_MOUSEMOTIONEVENT ============= \n");
   fprintf(stdout,"MOUSEMOTIONEVENT type : %zu\n" , offsetof(SDL_MouseMotionEvent, type));
@@ -149,9 +147,54 @@ typedef struct SDL_Keysym
   fprintf(stdout,"SDL_Rect w: %zu\n" , offsetof(SDL_Rect,  w));
   fprintf(stdout,"SDL_Rect h : %zu\n" , offsetof(SDL_Rect, h));
 
-  fprintf(stdout,"color blue : R G B : %zu\n" , 255 );
-  fprintf(stdout,"color green : R G B : %zu\n" , 255 << 8);
-  fprintf(stdout,"color reg : R G B : %zu\n" , 255 << 16);
+  fprintf(stdout,"color blue : R G B : %d\n" , 255 );
+  fprintf(stdout,"color green : R G B : %d\n" , 255 << 8);
+  fprintf(stdout,"color reg : R G B : %d\n" , 255 << 16);
+
+  
+/*   typedef struct SDL_Surface */
+/* { */
+/*     Uint32 flags;               /\**< Read-only *\/ */
+/*     SDL_PixelFormat *format;    /\**< Read-only *\/ */
+/*     int w, h;                   /\**< Read-only *\/ */
+/*     int pitch;                  /\**< Read-only *\/ */
+/*     void *pixels;               /\**< Read-write *\/ */
+
+/*     /\** Application data associated with the surface *\/ */
+/*     void *userdata;             /\**< Read-write *\/ */
+
+/*     /\** information needed for surfaces requiring locks *\/ */
+/*     int locked;                 /\**< Read-only *\/ */
+
+/*     /\** list of BlitMap that hold a reference to this surface *\/ */
+/*     void *list_blitmap;         /\**< Private *\/ */
+
+/*     /\** clipping information *\/ */
+/*     SDL_Rect clip_rect;         /\**< Read-only *\/ */
+
+/*     /\** info for fast blit mapping to other surfaces *\/ */
+/*     SDL_BlitMap *map;           /\**< Private *\/ */
+
+/*     /\** Reference count -- used when freeing surface *\/ */
+/*     int refcount;               /\**< Read-mostly *\/ */
+/* } SDL_Surface; */
+
+  SDL_Surface sdl_surface;
+  fprintf(stdout,"================= SDL_Surface ============= \n");
+  fprintf(stdout,"SDL_Surface has size in bytes of : %zu\n" , sizeof(SDL_Surface));
+  fprintf(stdout,"SDL_Surface flags : offset %zu : size %zu\n" , offsetof(SDL_Surface, flags),sizeof(sdl_surface.flags));
+  fprintf(stdout,"SDL_Surface format : offset %zu : size %zu\n" , offsetof(SDL_Surface, format),sizeof(sdl_surface.format));
+  fprintf(stdout,"SDL_Surface w: offset %zu : size %zu\n" , offsetof(SDL_Surface,  w),sizeof(sdl_surface.w));
+  fprintf(stdout,"SDL_Surface h : offset %zu : size %zu\n" , offsetof(SDL_Surface, h),sizeof(sdl_surface.h));
+  fprintf(stdout,"SDL_Surface pitch :  offset %zu : size %zu\n" , offsetof(SDL_Surface, pitch),sizeof(sdl_surface.pitch));
+  fprintf(stdout,"SDL_Surface pixels : offset %zu : size %zu\n" , offsetof(SDL_Surface, pixels),sizeof(sdl_surface.pixels));
+  fprintf(stdout,"SDL_Surface userdata: offset %zu : size %zu\n" , offsetof(SDL_Surface,  userdata),sizeof(sdl_surface.userdata));
+  fprintf(stdout,"SDL_Surface locked : offset %zu : size %zu\n" , offsetof(SDL_Surface, locked),sizeof(sdl_surface.locked));
+  fprintf(stdout,"SDL_Surface list_blitmap : offset %zu : size %zu\n" , offsetof(SDL_Surface, list_blitmap),sizeof(sdl_surface.list_blitmap));
+  fprintf(stdout,"SDL_Surface clip_rect : offset %zu : size %zu\n" , offsetof(SDL_Surface, clip_rect),sizeof(sdl_surface.clip_rect));
+  fprintf(stdout,"SDL_Surface map : offset  %zu : size %zu\n" , offsetof(SDL_Surface, map),sizeof(sdl_surface.map));
+  fprintf(stdout,"SDL_Surface refcount : offset %zu : size %zu\n" , offsetof(SDL_Surface, refcount),sizeof(sdl_surface.refcount));
+  
   
   
   

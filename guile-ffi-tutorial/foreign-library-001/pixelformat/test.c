@@ -35,6 +35,35 @@ void pixelformat2(SDL_Surface *ptr){
 }
 
 
+/*
+try
+ (applyStretchedImage surface 1024 768)
+ => error
+guile: symbol lookup error: ./pixelformat/pixelformat.so: undefined symbol: SDL_UpperBlitScaled
+
+
+  
+int SDL_UpperBlitScaled
+    (SDL_Surface * src, const SDL_Rect * srcrect,
+    SDL_Surface * dst, SDL_Rect * dstrect);
+
+    
+ */
+
+
+SDL_Surface *applyStretchedImage(SDL_Surface *gScreenSurface, int screenWidth , int screenHeight){
+  //Apply the image stretched
+  SDL_Rect stretchRect;
+  stretchRect.x = 0;
+  stretchRect.y = 0;
+  stretchRect.w = screenWidth;
+  stretchRect.h = screenHeight;
+  SDL_Surface* gStretchedSurface;
+  // but this is equivalent to SDL_UpperBlitScaled gStretced NULL gScreen NULL
+  // no point in defining rect 
+  SDL_BlitScaled( gStretchedSurface, NULL, gScreenSurface, &stretchRect );
+  return gStretchedSurface;
+}
 
 
 

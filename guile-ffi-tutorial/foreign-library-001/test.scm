@@ -1,11 +1,12 @@
 
+
 (load "pixelformat/pixelformat.scm")
 
 #|
 
 guile sdl2 ffi file 
 
-LTDL_LIBRARY_PATH=./pixelformat/ guile
+LTDL_LIBRARY_PATH=./:./pixelformat/ guile
 
 file:///usr/share/doc/guile-3.0.10/ref/Foreign-Pointers.html
 (use-modules (system foreign))
@@ -34,7 +35,11 @@ libSDL2-2.0.so
 libSDL2-2.0.so.0
 libSDL2-2.0.so.0.3000.0
 libSDL2.a
-libSDL2_image-2.0.so.0
+libSDL2_image-2.0.so.0             <----- this is NOT sdl2 image library for development
+          need to sudo apt install libsdl2-image-dev
+then will see
+libSDL2_image.so        <----- this is correct SDL2 image library
+
 libSDL2_image-2.0.so.0.800.2
 libSDL2main.a
 libSDL2_mixer-2.0.so
@@ -449,12 +454,16 @@ In addition, the symbol * is used by convention to denote pointer types. Procedu
 ;; (string->pointer "my window")
 ;; will return an appropriate ? null terminated ? char* ?? for the guile string "my window"
 
-;; convenience 
+;; convenience middle of my screen 1920 x 1080 default resolution
 (define (create-window title width height)
-  (let ((x 200)(y 200)
-	(flags (logior *constant-sdl-window-resizeable*
-		       *constant-sdl-window-allow-highdpi*
-		       *constant-sdl-window-always-on-top*
+  (let ((x (floor (/ (- 1920 width) 2)))
+	(y (floor (/ (- 1080 height) 2)))
+	(flags (logior ;;*constant-sdl-window-fullscreen-desktop*
+		        *constant-sdl-window-resizeable*
+		        *constant-sdl-window-allow-highdpi*
+			*constant-sdl-window-always-on-top*
+			;;*constant-sdl-window-fullscreen*
+		       ;;*constant-sdl-window-borderless*
 		       *constant-sdl-window-shown*)))
     (sdl-create-window (string->pointer title) x y width height flags)))
 
@@ -675,7 +684,7 @@ int SDL_UpperBlit
 ;; --- put an image on the screen
 ;; wait 5 seconds then cleanup
 (define (skooldaze)
-  (let ((width 1024)(height 768))
+  (let ((width 640)(height 480))
     (sdl-init *constant-sdl-init-video*)
     (define window (create-window "hello world" width height))
     (define surface (sdl-get-window-surface window))
@@ -2285,9 +2294,12 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
 ;; keep looping until user quits window
 ;; https://lazyfoo.net/tutorials/SDL/03_event_driven_programming/index.php
 (define (skooldaze2)
-  (let ((width 1024)(height 768))
+  (let ((screen-width 1024)(screen-height 768))
     (sdl-init *constant-sdl-init-video*)
-    (define window (create-window "hello world" width height))
+    (define image-init-result (image-init))
+    (format #t "image-init-result ~a~%" image-init-result)
+    
+    (define window (create-window "hello world" screen-width screen-height))    
     (define surface (sdl-get-window-surface window))
 
     (format #t "surface pointer ptr ~a~%" surface)
@@ -2295,7 +2307,10 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
     (output-check)
     ;; 
     (define hello-bitmap *null*)
-    (define loaded-surface (sdl-load-bmp "hello.bmp"))
+    ;;(define loaded-surface (sdl-load-bmp "hello.bmp"))
+
+    ;; image-load only loads jpg png web tif 
+    (define loaded-surface (image-load "zxspectrum.png"))
     (format #t "surface pointer ~a~%" surface)
     (format #t "surface address ~x~%" (pointer-address surface));; hex value
     (format #t "surface->format address ~x~%" (+ 8 (pointer-address surface)));; hex value
@@ -2303,6 +2318,7 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
 
     ;; display actual bytes that make up surface->format a (SDL_PixelFormat *ptr)
     (pixelformat2 surface)
+
     
     ;; display bytes we think we see
     (let* ((length 8)
@@ -2411,7 +2427,10 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
 	   ;; clear the surface?
 	   (sdl-fill-rect surface *null* 0)	   
 	   ;; apply image
-	   (sdl-blit-surface hello-bitmap *null* surface *null*)
+	   ;;(sdl-blit-surface hello-bitmap *null* surface *null*)
+	   ;;(applyStretchedImage surface screen-width screen-height)
+	   (sdl-upper-blit-scaled hello-bitmap %null-pointer surface %null-pointer)
+	   
 	   ;; random rectangle somewhere
 	   (sdl-fill-rect surface (make-sdl-rect-pointer 400 100 50 50) (make-sdl-color 255 0 0))
 	   (sdl-fill-rect surface (make-sdl-rect-pointer 500 100 50 50) (make-sdl-color 0 0 255))
