@@ -125,3 +125,4 @@ SDL_Texture* loadTexture( char *path , SDL_Renderer *render)
 
     return newTexture;
 }
+

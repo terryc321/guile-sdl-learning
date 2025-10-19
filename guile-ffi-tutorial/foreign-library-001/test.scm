@@ -2299,7 +2299,16 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
     (define image-init-result (image-init))
     (format #t "image-init-result ~a~%" image-init-result)
     
-    (define window (create-window "hello world" screen-width screen-height))    
+    (define window (create-window "hello world" screen-width screen-height))
+    (define render (create-renderer window))    
+    (cond
+     ((equal? render %null-pointer)   (format #t "create render failed !~%"))
+     (#t (format #t "created render success !~%")))
+
+    (sdl-set-render-draw-color render #xFF #xFF #xFF #xFF)
+
+    (define texture (load-texture "zxspectrum.png" render))
+    
     (define surface (sdl-get-window-surface window))
 
     (format #t "surface pointer ptr ~a~%" surface)
@@ -2442,6 +2451,8 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
 	   ) ;; while not quit 
     ;; cleanup
     (sdl-free-surface hello-bitmap)
+    ;; img-quit
+    ;; sdl-destroy-renderer render
     (sdl-destroy-window window)
     (sdl-quit)))
 
