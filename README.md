@@ -1,5 +1,36 @@
 # About
 
+Exploration of guile foreign function interface
+
+Reality is that C code requires C compiler , requires to be in C to be properly programmed.
+
+Trying to do this from guile exclusively leads to significant problems.
+
+1 - C macros do not exist after compilation , so cannot be loaded in dynamically in any shape or form
+
+2 - due to (1) this means many routines are simply not available
+
+3 - a C coded routine compiled as a shared library does not link against SDL libraries , therefore
+depending on guile to find them dynamically at runtime which it simply cannot do
+
+example IMG_Load not found by guile
+
+Really just need to code entire application in C for performance reasons .
+
+can then use libguile to extend application if needed
+
+trying to navigate C datastructures from within guile is not easy
+
+SDL_Surface *surface;
+SDL_PixelFormat *pf = surface->format;
+
+how does one actually do this in guile ?
+
+know format member is at offset 8 from surface pointer , simply unable to decode this into guile.
+
+
+
+
 ## guile ffi sdl + cairo attempt
 see the working code so far [here](guile-ffi-tutorial/foreign-library-001/test.scm)
 
