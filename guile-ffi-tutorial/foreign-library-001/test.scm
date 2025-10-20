@@ -39,6 +39,7 @@ libSDL2_image-2.0.so.0             <----- this is NOT sdl2 image library for dev
           need to sudo apt install libsdl2-image-dev
 then will see
 libSDL2_image.so        <----- this is correct SDL2 image library
+  sudo apt install libsdl2-image-dev 
 
 libSDL2_image-2.0.so.0.800.2
 libSDL2main.a
@@ -524,6 +525,48 @@ In addition, the symbol * is used by convention to denote pointer types. Procedu
 
 
 
+#|
+SDL_Texture* loadTexture( char *path , SDL_Renderer *render)
+{
+    //The final texture
+    SDL_Texture* newTexture = NULL;
+
+    //Load image at specified path
+    SDL_Surface* loadedSurface = IMG_Load( path );
+    if( loadedSurface == NULL )
+    {
+        printf( "Unable to load image %s! SDL_image Error: %s\n", path, IMG_GetError() );
+    }
+    else
+    {
+        //Create texture from surface pixels
+        newTexture = SDL_CreateTextureFromSurface( render, loadedSurface );
+        if( newTexture == NULL )
+        {
+            printf( "Unable to create texture from %s! SDL Error: %s\n", path, SDL_GetError() );
+        }
+
+        //Get rid of old loaded surface
+        SDL_FreeSurface( loadedSurface );
+    }
+
+    return newTexture;
+}
+|#
+(define (load-texture path render)
+  (define loaded-surface (%img-load (string->pointer path)))
+  (cond
+   ((equal? loaded-surface %null-pointer)
+    (format #t "unable to load image ~a ~%" path)
+    %null-pointer)
+   (#t (let ((new-texture (sdl-create-texture-from-surface render loaded-surface)))
+	 (cond
+	  ((equal? new-texture %null-pointer)
+	   (format #t "unable to create texture from image ~a ~%" path)
+	   %null-pointer)
+	  (#t (sdl-free-surface loaded-surface)
+	      new-texture))))))
+
 
 ;; nm -D /usr/lib/x86_64-linux-gnu/libSDL2.so | grep SDL_LoadBMP
 ;; 000000000004c620 T SDL_LoadBMP_RW
@@ -540,6 +583,16 @@ In addition, the symbol * is used by convention to denote pointer types. Procedu
   (foreign-library-function "libSDL2" "SDL_DestroyWindow"
                             #:return-type void
                             #:arg-types (list '* )))
+
+
+;;SDL_Texture * SDL_CreateTextureFromSurface(SDL_Renderer * renderer, SDL_Surface * surface);
+(define sdl-create-texture-from-surface
+  (foreign-library-function "libSDL2" "SDL_CreateTextureFromSurface"
+                            #:return-type '*
+                            #:arg-types (list '* '*)))
+
+
+
 
 
 ;; usage
@@ -2273,6 +2326,10 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
 
 
 |#
+
+
+
+
 (define (make-sdl-rect x y w h)
   (let* ((size 16)
 	 (bv (make-bytevector size 0)))
@@ -2291,6 +2348,8 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
 (define *mouse-x* 0)
 (define *mouse-y* 0)
 
+
+
 ;; keep looping until user quits window
 ;; https://lazyfoo.net/tutorials/SDL/03_event_driven_programming/index.php
 (define (skooldaze2)
@@ -2308,6 +2367,7 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
     (sdl-set-render-draw-color render #xFF #xFF #xFF #xFF)
 
     (define texture (load-texture "zxspectrum.png" render))
+    (format #t "texture created ~a~%" texture)
     
     (define surface (sdl-get-window-surface window))
 

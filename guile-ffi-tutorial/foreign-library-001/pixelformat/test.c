@@ -98,7 +98,7 @@ init_math_bessel (void)
 }
 */
 
-
+/*
 SDL_Texture* loadTexture( char *path , SDL_Renderer *render)
 {
     //The final texture
@@ -125,3 +125,5 @@ SDL_Texture* loadTexture( char *path , SDL_Renderer *render)
 
     return newTexture;
 }
+*/
+
