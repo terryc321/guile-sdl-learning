@@ -1,4 +1,6 @@
 
+;; can we alter LTDL_LIBRARY_PATH to point to current directory and also ./pixelformat directory ?
+
 
 (load "pixelformat/pixelformat.scm")
 
@@ -568,6 +570,16 @@ SDL_Texture* loadTexture( char *path , SDL_Renderer *render)
 	      new-texture))))))
 
 
+(define img-quit
+  (foreign-library-function "libSDL2_image" "IMG_Quit"
+                            #:return-type void
+                            #:arg-types (list )))
+
+
+
+  
+
+
 ;; nm -D /usr/lib/x86_64-linux-gnu/libSDL2.so | grep SDL_LoadBMP
 ;; 000000000004c620 T SDL_LoadBMP_RW
 ;;
@@ -590,6 +602,16 @@ SDL_Texture* loadTexture( char *path , SDL_Renderer *render)
   (foreign-library-function "libSDL2" "SDL_CreateTextureFromSurface"
                             #:return-type '*
                             #:arg-types (list '* '*)))
+
+
+
+;;SDL_DestroyRenderer
+;;void SDL_DestroyRenderer(SDL_Renderer * renderer);
+(define sdl-destroy-renderer
+  (foreign-library-function "libSDL2" "SDL_DestroyRenderer"
+                            #:return-type void
+                            #:arg-types (list '*)))
+
 
 
 
@@ -2598,9 +2620,10 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
 	   ) ;; while not quit 
     ;; cleanup
     (sdl-free-surface hello-bitmap)
-    ;; img-quit
-    ;; sdl-destroy-renderer render
+    
+    (sdl-destroy-renderer render)
     (sdl-destroy-window window)
+    (img-quit)
     (sdl-quit)))
 
 

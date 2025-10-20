@@ -8,6 +8,7 @@
 (load-foreign-library "libSDL2_image")
 
 
+
 ;;(define show-pixelformat (foreign-library-pointer "pixelformat" "show_pixelformat_format"))
 ;;(define init-pixelformat (foreign-library-pointer "pixelformat" "init_pixelformat"))
 
