@@ -2,5 +2,7 @@
 
 export LTDL_LIBRARY_PATH=./:./pixelformat/
 
-guile
+rlwrap guile
+
+
 

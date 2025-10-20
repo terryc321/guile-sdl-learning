@@ -744,7 +744,20 @@ int SDL_UpperBlit
 			    #:return-type int
                             #:arg-types (list '* '*)))
 
+;; int SDL_RenderFillRect(SDL_Renderer * renderer,
+;;                        const SDL_Rect * rect);
+(define sdl-render-fill-rect
+  (foreign-library-function "libSDL2" "SDL_RenderFillRect"
+			    #:return-type int
+                            #:arg-types (list '* '*)))
 
+
+;; int SDL_RenderDrawPoint(SDL_Renderer * renderer,
+;;                         int x, int y);
+(define sdl-render-draw-point
+  (foreign-library-function "libSDL2" "SDL_RenderDrawPoint"
+			    #:return-type int
+                            #:arg-types (list '* int int)))
 
 
 (define *constant-cairo-format-rgb24* 1)
@@ -2406,6 +2419,69 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
 (define *mouse-x* 0)
 (define *mouse-y* 0)
 
+;; 640 x 480
+(define *screen-width* 640)
+(define *screen-height* 480)
+
+;; determine how big the window actually is ?
+;; have a number of bouncing blocks
+(define *blocks-count* 100)
+(define *blocks* (make-vector *blocks-count* #f))
+
+;; initialise blocks
+(letrec ((foo (lambda (i)
+		(when (< i *blocks-count*)
+		  (let ((bv (make-bytevector (* 6 (size-int)))))
+		    (bytevector-s32-native-set! bv 0 (random 640))
+		    (bytevector-s32-native-set! bv 4 (random 480))
+		    (bytevector-s32-native-set! bv 8 (random 10))
+		    (bytevector-s32-native-set! bv 12 (random 10))
+		    ;;(bytevector-s32-native-set! bv 16 (random 10))
+		    ;;(bytevector-s32-native-set! bv 20 (random 10))
+		    (vector-set! *blocks* i bv))
+		  (foo (+ i 1))
+		  ))))
+  (foo 0))
+
+;; update all blocks
+(define (update-blocks)
+  (letrec ((foo (lambda (i)
+		  (when (< i *blocks-count*)
+		    (let ((bv (vector-ref *blocks* i)))
+		      (let ((x (bytevector-s32-native-ref bv 0))
+			    (y (bytevector-s32-native-ref bv 4))
+			    (vx (bytevector-s32-native-ref bv 8))
+			    (vy (bytevector-s32-native-ref bv 12)))
+			(set! x (+ x vx))
+			(set! y (+ y vy))
+			(when (> x *screen-width*)
+			  (set! x *screen-width*)
+			  (set! vx (- vx)))
+			(when (> y *screen-height*)
+			  (set! y *screen-height*)
+			  (set! vy (- vy)))
+			(when (< x 0)
+			  (set! x 0)
+			  (set! vx (- vx)))
+			(when (< y 0)
+			  (set! y 0)
+			  (set! vy (- vy)))
+			(bytevector-s32-native-set! bv 0 x)
+			(bytevector-s32-native-set! bv 4 y)
+			(bytevector-s32-native-set! bv 8 vx)
+			(bytevector-s32-native-set! bv 12 vy)))
+		    (foo (+ i 1))))))
+  (foo 0)))
+  
+(define (show-blocks render)
+  (letrec ((foo (lambda (i)
+		  (when (< i *blocks-count*)
+		    (let ((bv (vector-ref *blocks* i)))
+		      (sdl-render-fill-rect render (bytevector->pointer bv)))
+		    (foo (+ i 1))))))
+    (foo 0)))
+
+
 
 
 ;; keep looping until user quits window
@@ -2451,7 +2527,6 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
 
     ;; display actual bytes that make up surface->format a (SDL_PixelFormat *ptr)
     (pixelformat2 surface)
-
     
     ;; display bytes we think we see
     (let* ((length 8)
@@ -2585,6 +2660,44 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
 	     
 	   ;; line from top left to mouse position
 	   (sdl-render-draw-line render 0 0 *mouse-x* *mouse-y*)
+
+	   ;; red
+	   (sdl-set-render-draw-color render #xFF #x00 #x00 #xFF)	   
+	   (let ((bv (make-bytevector (* 4 (size-int)) 0)))
+	     (bytevector-s32-native-set! bv 0 100)
+	     (bytevector-s32-native-set! bv 4 100)
+	     (bytevector-s32-native-set! bv 8 100)
+	     (bytevector-s32-native-set! bv 12 100)
+	     (sdl-render-fill-rect render (bytevector->pointer bv)))
+
+	   ;; green
+	   (sdl-set-render-draw-color render #x00 #xFF #x00 #xFF)	   	   
+	   (let ((bv (make-bytevector (* 4 (size-int)) 0)))
+	     (bytevector-s32-native-set! bv 0 300)
+	     (bytevector-s32-native-set! bv 4 100)
+	     (bytevector-s32-native-set! bv 8 100)
+	     (bytevector-s32-native-set! bv 12 100)
+	     (sdl-render-fill-rect render (bytevector->pointer bv)))
+
+	   ;; blue
+	   (sdl-set-render-draw-color render #x00 #x00 #xFF #xFF)	   	   	   
+	   (let ((bv (make-bytevector (* 4 (size-int)) 0)))
+	     (bytevector-s32-native-set! bv 0 500)
+	     (bytevector-s32-native-set! bv 4 100)
+	     (bytevector-s32-native-set! bv 8 100)
+	     (bytevector-s32-native-set! bv 12 100)
+	     (sdl-render-fill-rect render (bytevector->pointer bv)))
+	   
+	   
+	   ;; draw some random points
+	   ;;(sdl-set-render-draw-color render #x00 #x00 #x00 #xFF)	   
+	   ;;(sdl-render-draw-point render 150 150)
+
+	   ;; update the blocks
+	   ;;(update-blocks)
+	   
+	   ;; show the blocks
+	   ;;(show-blocks render)	   
 	   
 	   ;; show render
 	   (sdl-render-present render)
