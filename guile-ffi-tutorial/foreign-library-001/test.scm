@@ -686,6 +686,42 @@ int SDL_UpperBlit
                             #:arg-types (list '* '* '* '*)))
 
 
+;; render-clear
+;; int SDL_RenderClear(SDL_Renderer * renderer);
+(define sdl-render-clear
+  (foreign-library-function "libSDL2" "SDL_RenderClear"
+			    #:return-type int
+                            #:arg-types (list '*)))
+
+;; int SDL_RenderCopy(SDL_Renderer * renderer,
+;;                    SDL_Texture * texture,
+;;                    const SDL_Rect * srcrect,
+;;                    const SDL_Rect * dstrect);
+(define sdl-render-copy
+  (foreign-library-function "libSDL2" "SDL_RenderCopy"
+			    #:return-type int
+                            #:arg-types (list '* '* '* '*)))
+
+;; void SDL_RenderPresent(SDL_Renderer * renderer);
+(define sdl-render-present
+  (foreign-library-function "libSDL2" "SDL_RenderPresent"
+			    #:return-type int
+                            #:arg-types (list '*)))
+
+
+;; int SDL_RenderDrawLine(SDL_Renderer * renderer,
+;;                        int x1, int y1, int x2, int y2);
+(define sdl-render-draw-line
+  (foreign-library-function "libSDL2" "SDL_RenderDrawLine"
+			    #:return-type int
+                            #:arg-types (list '* int int int int)))
+
+;; int SDL_RenderDrawRect(SDL_Renderer * renderer,   const SDL_Rect * rect);
+(define sdl-render-draw-rect
+  (foreign-library-function "libSDL2" "SDL_RenderDrawRect"
+			    #:return-type int
+                            #:arg-types (list '* '*)))
+
 
 
 
@@ -2372,8 +2408,6 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
      ((equal? render %null-pointer)   (format #t "create render failed !~%"))
      (#t (format #t "created render success !~%")))
 
-    (sdl-set-render-draw-color render #xFF #xFF #xFF #xFF)
-
     (define texture (load-texture "zxspectrum.png" render))
     (format #t "texture created ~a~%" texture)
     
@@ -2501,6 +2535,49 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
 			(set! *mouse-y* y)))
 		     (#t #f))))
 
+	   ;; blue color
+	   (sdl-set-render-draw-color render #x00 #x00 #xFF #xFF)
+	   
+	   ;; clear screen 
+	   (sdl-render-clear render)
+
+	   ;; display image
+	   (sdl-render-copy render texture %null-pointer %null-pointer)
+
+	   ;; red line
+	   (sdl-set-render-draw-color render #xFF #x00 #x00 #xFF)
+
+	   ;; draw-rect
+	   (let ((bv (make-bytevector (* 4 (size-int)) 0)))
+	     (bytevector-s32-native-set! bv 0 *mouse-x*)
+	     (bytevector-s32-native-set! bv 4 *mouse-y*)
+	     (bytevector-s32-native-set! bv 8 20)
+	     (bytevector-s32-native-set! bv 12 20)
+	     ;;(show-rect (bytevector->pointer bv))
+	   
+	     ;; dereference-pointer
+	     ;; file:///usr/share/doc/guile-3.0.10/ref/Void-Pointers-and-Byte-Access.html
+	     
+	     ;;(format #t "bytevector pointer ~a ~%" (bytevector->pointer bv) 
+	     (sdl-render-draw-rect render (bytevector->pointer bv)))	     
+	     
+	   ;; line from top left to mouse position
+	   (sdl-render-draw-line render 0 0 *mouse-x* *mouse-y*)
+	   
+	   ;; show render
+	   (sdl-render-present render)
+	   
+#|
+	   //Clear screen
+                SDL_RenderClear( gRenderer );
+
+                //Render texture to screen
+                SDL_RenderCopy( gRenderer, gTexture, NULL, NULL );
+
+                //Update screen
+                SDL_RenderPresent( gRenderer );
+		
+	   
 	   ;; clear the surface?
 	   (sdl-fill-rect surface *null* 0)	   
 	   ;; apply image
@@ -2516,6 +2593,8 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
 	   
 	   ;; update surface
 	   (sdl-update-window-surface window)
+|#
+	   
 	   ) ;; while not quit 
     ;; cleanup
     (sdl-free-surface hello-bitmap)

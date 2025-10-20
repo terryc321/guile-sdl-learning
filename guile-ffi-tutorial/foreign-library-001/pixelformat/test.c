@@ -127,3 +127,14 @@ SDL_Texture* loadTexture( char *path , SDL_Renderer *render)
 }
 */
 
+int size_int(){
+  size_t sz = sizeof(int);
+  //fprintf(stdout,"size of int is %zu\n",sz);
+  return sz;  
+}
+
+void show_rect(SDL_Rect *r){
+  fprintf(stdout,"rect has x,y,w,h of %d %d %d %d \n" , r->x ,r->y,r->w , r->h);
+}
+
+

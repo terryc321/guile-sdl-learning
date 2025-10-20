@@ -33,6 +33,13 @@
                             #:arg-types (list '* int int)))
 
 
+(define size-int
+  (foreign-library-function "libpixelformat" "size_int"
+                            #:return-type int
+                            #:arg-types (list)))
+
+
+
 
 ;; int SDL_UpperBlitScaled
 ;;   (SDL_Surface * src, const SDL_Rect * srcrect,
@@ -125,14 +132,20 @@ typedef enum IMG_InitFlags
                             #:return-type int
                             #:arg-types (list '* uint8 uint8 uint8 uint8)))
 
+(define show-rect
+  (foreign-library-function "libpixelformat" "show_rect"
+                            #:return-type void
+                            #:arg-types (list '*)))
 
-(define %load-texture
-  (foreign-library-function "libpixelformat" "loadTexture"
-                            #:return-type '*
-                            #:arg-types (list '* '*)))
+
+
+;; (define %load-texture
+;;   (foreign-library-function "libpixelformat" "loadTexture"
+;;                             #:return-type '*
+;;                             #:arg-types (list '* '*)))
   
-(define (load-texture s render)
-  (%load-texture (string->pointer s) render))
+;; (define (load-texture s render)
+;;   (%load-texture (string->pointer s) render))
 
 
 
