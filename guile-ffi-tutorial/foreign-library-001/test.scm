@@ -2352,6 +2352,14 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
 
 ;; keep looping until user quits window
 ;; https://lazyfoo.net/tutorials/SDL/03_event_driven_programming/index.php
+;; 1 load a bitmap image
+;; 2 optimized image for particular screen
+;; 3 load images using IMG_Load jpeg gif - some other types just not a bitmap bmp ??
+;; 4 moved to accelerated window 
+;; 5 load texture
+;; 6 
+;;
+;;
 (define (skooldaze2)
   (let ((screen-width 1024)(screen-height 768))
     (sdl-init *constant-sdl-init-video*)
