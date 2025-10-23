@@ -1,8 +1,8 @@
 
 ;; can we alter LTDL_LIBRARY_PATH to point to current directory and also ./pixelformat directory ?
 
-
 (load "pixelformat/pixelformat.scm")
+;;(load "pixelformat.scm")
 
 #|
 
@@ -2428,20 +2428,24 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
 (define *blocks-count* 100)
 (define *blocks* (make-vector *blocks-count* #f))
 
+;; (define (size-int) 4) 
+
 ;; initialise blocks
-(letrec ((foo (lambda (i)
-		(when (< i *blocks-count*)
-		  (let ((bv (make-bytevector (* 6 (size-int)))))
-		    (bytevector-s32-native-set! bv 0 (random 640))
-		    (bytevector-s32-native-set! bv 4 (random 480))
-		    (bytevector-s32-native-set! bv 8 (random 10))
-		    (bytevector-s32-native-set! bv 12 (random 10))
-		    ;;(bytevector-s32-native-set! bv 16 (random 10))
-		    ;;(bytevector-s32-native-set! bv 20 (random 10))
-		    (vector-set! *blocks* i bv))
-		  (foo (+ i 1))
-		  ))))
-  (foo 0))
+;; using bytevector during loading with shared libraries causes seg fault
+(define (initialize-blocks)
+  (letrec ((foo (lambda (i)
+		  (when (< i *blocks-count*)
+		    (let ((bv (make-bytevector (* 6 (size-int)))))
+		      (bytevector-s32-native-set! bv 0 (random 640))
+		      (bytevector-s32-native-set! bv 4 (random 480))
+		      (bytevector-s32-native-set! bv 8 (random 1))
+		      (bytevector-s32-native-set! bv 12 (random 1))
+		      ;;(bytevector-s32-native-set! bv 16 (random 10))
+		      ;;(bytevector-s32-native-set! bv 20 (random 10))
+		      (vector-set! *blocks* i bv))
+		    (foo (+ i 1))
+		    ))))
+    (foo 0)))
 
 ;; update all blocks
 (define (update-blocks)
@@ -2477,9 +2481,21 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
   (letrec ((foo (lambda (i)
 		  (when (< i *blocks-count*)
 		    (let ((bv (vector-ref *blocks* i)))
-		      (sdl-render-fill-rect render (bytevector->pointer bv)))
-		    (foo (+ i 1))))))
+		      ;; (let ((x (bytevector-s32-native-ref bv 0))
+		      ;; 	    (y (bytevector-s32-native-ref bv 4))
+		      ;; 	    (vx (bytevector-s32-native-ref bv 8))
+		      ;; 	    (vy (bytevector-s32-native-ref bv 12)))
+		      ;; 	(let* ((bvi (make-bytevector (* 6 (size-int)))))
+		      ;; 	  (bytevector-s32-native-set! bvi 0 (floor x))
+		      ;; 	  (bytevector-s32-native-set! bvi 4 (floor y))
+		      ;; 	  (bytevector-s32-native-set! bvi 8 (floor vx))
+		      ;; 	  (bytevector-s32-native-set! bvi 12 (floor vy))
+		      (sdl-render-fill-rect render (bytevector->pointer bv))))
+		    (foo (+ i 1)))))
     (foo 0)))
+
+
+
 
 
 
@@ -2555,7 +2571,8 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
      (#t (set! hello-bitmap optimized-surface)
 	 (format #t "created optimized surface ~a~%" optimized-surface)
 	 (sdl-free-surface loaded-surface)))
-    
+
+    ;; (initialize-blocks)
     	
     (define quit #f)
 
@@ -2658,8 +2675,6 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
 	     ;;(format #t "bytevector pointer ~a ~%" (bytevector->pointer bv) 
 	     (sdl-render-draw-rect render (bytevector->pointer bv)))	     
 	     
-	   ;; line from top left to mouse position
-	   (sdl-render-draw-line render 0 0 *mouse-x* *mouse-y*)
 
 	   ;; red
 	   (sdl-set-render-draw-color render #xFF #x00 #x00 #xFF)	   
@@ -2687,17 +2702,27 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
 	     (bytevector-s32-native-set! bv 8 100)
 	     (bytevector-s32-native-set! bv 12 100)
 	     (sdl-render-fill-rect render (bytevector->pointer bv)))
-	   
+
+	   ;; line from top left to mouse position
+	   (sdl-set-render-draw-color render #xFF #x00 #x00 #xFF)	   	   	   
+	   (let ((bv (make-bytevector (* 4 (size-int)) 0)))
+	     (bytevector-s32-native-set! bv 0 *mouse-x*)
+	     (bytevector-s32-native-set! bv 4 *mouse-y*)
+	     (bytevector-s32-native-set! bv 8 20)
+	     (bytevector-s32-native-set! bv 12 20)
+	     (sdl-render-fill-rect render (bytevector->pointer bv)))
+	   (sdl-render-draw-line render 0 0 *mouse-x* *mouse-y*)
+	      
 	   
 	   ;; draw some random points
 	   ;;(sdl-set-render-draw-color render #x00 #x00 #x00 #xFF)	   
 	   ;;(sdl-render-draw-point render 150 150)
 
-	   ;; update the blocks
-	   ;;(update-blocks)
+	   ;; ;; update the blocks
+	   ;; (update-blocks)
 	   
-	   ;; show the blocks
-	   ;;(show-blocks render)	   
+	   ;; ;; show the blocks
+	   ;; (show-blocks render)	   
 	   
 	   ;; show render
 	   (sdl-render-present render)

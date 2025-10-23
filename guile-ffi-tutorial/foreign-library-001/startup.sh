@@ -1,8 +1,10 @@
 #!/bin/bash
 
-export LTDL_LIBRARY_PATH=./:./pixelformat/
+LTDL_LIBRARY_PATH=./:./pixelformat/ guile
 
-rlwrap guile
+#LTDL_LIBRARY_PATH=./ guile
+
+
 
 
 
