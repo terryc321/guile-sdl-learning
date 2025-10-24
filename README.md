@@ -1,10 +1,85 @@
 # About
 
-Exploration of guile foreign function interface
+One aspect of computing reliability is to use multiple languages
+
+Suppose we have some solvable problem P
+
+Language L we like to use , going to produce some data set that we wish to visualise
+
+let call this Graphical Application G
+
+```
+P : L -> G
+```
+
+we can see output from program L on graphical window G
+
+if we want to solve the problem in L2
+```
+P : L2 -> G
+```
+
+if we want to have a different graphical view / window G2
+
+```
+P : L2 -> G2
+```
+
+we could also
+
+```
+P : L -> G2
+```
+
+provided we have a consistent interface / data protocol
+
+if we state what output file format should be from any such L , such that any such G can read it
+
+we are free to choose specific languages L1 L2 L3 and build any such graphical viewing windows G1 G2 G3
+from any graphical languages
+
+also means should computing platform shift from 64bit to 128 bit then presumably the problem solver should
+be able to cope ?
+
+# Feedback loop
+
+how would we provide a feedback loop to L ?
+
+does this mean reprogramming L ? and then L2 L3 ... for every solver we wrote ?
+
+what type of feedback is required / requested ?
+
+# Guile Foreign Function Interface
+
+
+Mainly about foreign-001 function interface
+
+Experiment to see how far can go with dynamically loaded libraries in guile scheme using the
+foreign function interface
 
 ![screenshot](guile-ffi-tutorial/foreign-library-001/screenshot-001.png) 
 
 Reality is that C code requires C compiler , requires to be in C to be properly programmed.
+
+macros are simply vanished cannot be recovered , so these must be duplicated in scheme code somehow
+
+so if following the "library" approach of foreign code and making guile the centre of the universe
+
+we simply must give up on C macros.
+
+Some things are much easier in C than from guile scheme , so sometimes an extra routine here and there
+will help - this is the reason for libpixelformat .
+
+that being said we followed some of the lazy foo game programming sdl2 tutorial and have quite a lot working
+
+[ ] can we have a working cairo + sdl window ?
+
+what does it mean to have the graphical user interface linked to the code itself ?
+
+[ ] cambridge / oxford professor said gui code contaminates / poisons everything - provide links to research 
+
+
+## 
 
 Trying to do this from guile exclusively leads to significant problems.
 
