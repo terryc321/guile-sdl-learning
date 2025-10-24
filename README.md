@@ -2,6 +2,8 @@
 
 Exploration of guile foreign function interface
 
+![screenshot](guile-ffi-tutorial/foreign-library-001/screenshot-001.png) 
+
 Reality is that C code requires C compiler , requires to be in C to be properly programmed.
 
 Trying to do this from guile exclusively leads to significant problems.
