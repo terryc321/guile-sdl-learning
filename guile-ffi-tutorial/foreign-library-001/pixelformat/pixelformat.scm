@@ -123,6 +123,20 @@ typedef enum IMG_InitFlags
                             #:return-type '*
                             #:arg-types (list '* int uint32)))
 
+;; int surface_width(SDL_Surface *s)
+(define %sdl-surface-width
+  (foreign-library-function "libpixelformat" "surface_width"
+                            #:return-type int
+                            #:arg-types (list '*)))
+
+;;int surface_height(SDL_Surface *s)
+(define %sdl-surface-height
+  (foreign-library-function "libpixelformat" "surface_height"
+                            #:return-type int
+                            #:arg-types (list '*)))
+
+
+
 
 ;; SDL_SetRenderDrawColor
 ;; int SDL_SetRenderDrawColor(SDL_Renderer * renderer,

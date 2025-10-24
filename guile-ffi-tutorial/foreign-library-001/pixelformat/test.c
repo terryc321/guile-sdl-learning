@@ -1,15 +1,26 @@
 
-#include <math.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+
+#include <math.h>
 #include <stdio.h>
 #include <stddef.h>
 
 #include <libguile.h>
 
+
 void pixelformat2(SDL_Surface *ptr);
 SDL_PixelFormat *pixelformat_wrapper(SDL_Surface *ptr);
 void output_check();
+
+
+int surface_width(SDL_Surface *s){
+  return s->w;
+}
+
+int surface_height(SDL_Surface *s){
+  return s->h;
+}
 
 
 SDL_PixelFormat *pixelformat_wrapper(SDL_Surface *ptr){
@@ -34,6 +45,7 @@ void pixelformat2(SDL_Surface *ptr){
     }
   }
 }
+
 
 
 /*

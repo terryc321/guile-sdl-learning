@@ -358,6 +358,7 @@ In addition, the symbol * is used by convention to denote pointer types. Procedu
 (define *constant-sdl-init-events*            #x00004000)
 (define *constant-sdl-init-sensor*            #x00008000)
 (define *constant-sdl-init-parachute*         #x00100000)
+;; C logical or | is guile logior logical inclusive or
 (define *constant-sdl-init-everything*   (logior *constant-sdl-init-timer*
 						 *constant-sdl-init-audio*
 						 *constant-sdl-init-video*
@@ -555,6 +556,7 @@ SDL_Texture* loadTexture( char *path , SDL_Renderer *render)
     return newTexture;
 }
 |#
+
 (define (load-texture path render)
   (define loaded-surface (%img-load (string->pointer path)))
   (cond
@@ -758,6 +760,44 @@ int SDL_UpperBlit
   (foreign-library-function "libSDL2" "SDL_RenderDrawPoint"
 			    #:return-type int
                             #:arg-types (list '* int int)))
+
+
+;; int TTF_Init(void);
+(define ttf-init
+  (foreign-library-function "libSDL2_ttf" "TTF_Init"
+			    #:return-type int
+                            #:arg-types (list)))
+
+;; void TTF_Quit(void);
+(define ttf-quit
+  (foreign-library-function "libSDL2_ttf" "TTF_Quit"
+			    #:return-type void
+                            #:arg-types (list)))
+
+;; SDL_Surface * TTF_RenderText_Solid(TTF_Font *font,   const char *text, SDL_Color fg);
+;; what do if structure was just as a parameter , not a pointer , how cope if structure bigger than 64bit ?
+(define ttf-render-text-solid
+  (foreign-library-function "libSDL2_ttf" "TTF_RenderText_Solid"
+			    #:return-type '*
+                            #:arg-types (list '* '* uint32)))
+
+
+;; gFont = TTF_OpenFont( "16_true_type_fonts/lazy.ttf", 28 );
+;; TTF_Font * TTF_OpenFont(const char *file, int ptsize);
+(define ttf-open-font
+  (foreign-library-function "libSDL2_ttf" "TTF_OpenFont"
+			    #:return-type '*
+                            #:arg-types (list '* int)))
+
+;; void TTF_CloseFont(TTF_Font *font);
+(define ttf-close-font
+  (foreign-library-function "libSDL2_ttf" "TTF_CloseFont"
+			    #:return-type void
+                            #:arg-types (list '*)))
+
+
+
+
 
 
 (define *constant-cairo-format-rgb24* 1)
@@ -2515,9 +2555,22 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
 ;;
 (define (skooldaze2)
   (let ((screen-width 1024)(screen-height 768))
+
+    (define font-size 36)
+    (define mTexture %null-pointer)
+    (define mTexture-width 0)
+    (define mTexture-height 0)
+	   
     (sdl-init *constant-sdl-init-video*)
     (define image-init-result (image-init))
     (format #t "image-init-result ~a~%" image-init-result)
+
+    (define ttf-init-result (ttf-init))
+    (format #t "ttf-init-result ~a~%"  ttf-init-result)
+    (cond
+     ((zero? ttf-init-result) 'ok)
+     (#t (format #t "ttf-init error~%")))
+    
     
     (define window (create-window "hello world" screen-width screen-height))
     (define render (create-renderer window))    
@@ -2576,7 +2629,19 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
 	 (sdl-free-surface loaded-surface)))
 
     (initialize-blocks)
-    	
+
+
+    ;; your ttf-file goes here + point size
+    ;; c char* not a guile string
+    (define font %null-pointer)
+    (let ((the-font "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf"))
+      (set! font (ttf-open-font (string->pointer the-font) font-size))
+      (cond
+       ((equal? font %null-pointer)
+	(format #t "ttf font error cannot open font {~a}~%" the-font))
+       (#t (format #t "ttf ~a obtained ok~%" the-font))))
+    	      
+    
     (define quit #f)
 
     (sdl-show-cursor 0) ;; 0=false 1=truthy
@@ -2646,8 +2711,8 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
 			    (y (bytevector-s32-native-ref event 24 ))
 			    (xrel (bytevector-s32-native-ref event 28 ))
 			    (yrel (bytevector-s32-native-ref event 32 )))
-			(format #t "mouse move (~a ~a ~a ~a " type timestamp windowid state)
-			(format #t " (pos:~a ~a) (rel:~a ~a) ~%" x y xrel yrel)
+			;;(format #t "mouse move (~a ~a ~a ~a " type timestamp windowid state)
+			;;(format #t " (pos:~a ~a) (rel:~a ~a) ~%" x y xrel yrel)
 			(set! *mouse-x* x)
 			(set! *mouse-y* y)))
 		     (#t #f))))
@@ -2726,6 +2791,33 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
 	   
 	   ;; ;; show the blocks
 	   (show-blocks render)	   
+
+
+	   ;; some writing
+	   ;; SDL_Surface* textSurface = TTF_RenderText_Solid( gFont, textureText.c_str(), textColor );
+	   (set! mTexture %null-pointer)
+	   (set! mTexture-width 0)
+	   (set! mTexture-height 0)
+	   (let* ((textColor #xFF00FFFF) ;; r g b a = each uint8  (ie 2 hex characters making total 8 hex chars alpha FF)
+		  (textSurface (ttf-render-text-solid font
+						      (string->pointer
+						       (format #f "mouse position is ~a ~a" *mouse-x* *mouse-y*))
+						      textColor)))
+	     (cond
+	      ((equal? textSurface %null-pointer) (format #t "failed to render text ~%"))
+	      (#t (set! mTexture (sdl-create-texture-from-surface render textSurface))
+		  (set! mTexture-width (%sdl-surface-width textSurface))
+		  (set! mTexture-height (%sdl-surface-height textSurface))
+		  (sdl-free-surface textSurface))))
+
+	   (when (not (equal? mTexture %null-pointer))
+	     (let ((bv (make-bytevector (* 4 (size-int)) 0)))
+	       (bytevector-s32-native-set! bv 0 0)
+	       (bytevector-s32-native-set! bv 4 0)
+	       (bytevector-s32-native-set! bv 8 mTexture-width)
+	       (bytevector-s32-native-set! bv 12 mTexture-height)	       
+	       (sdl-render-copy render mTexture %null-pointer (bytevector->pointer bv))))
+	   
 	   
 	   ;; show render
 	   (sdl-render-present render)
@@ -2760,10 +2852,13 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
 	   
 	   ) ;; while not quit 
     ;; cleanup
+    (ttf-close-font font)	     
     (sdl-free-surface hello-bitmap)
     
     (sdl-destroy-renderer render)
     (sdl-destroy-window window)
+    
+    (ttf-quit)
     (img-quit)
     (sdl-quit)))
 
