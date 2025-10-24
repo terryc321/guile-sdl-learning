@@ -606,6 +606,13 @@ SDL_Texture* loadTexture( char *path , SDL_Renderer *render)
                             #:arg-types (list '* '*)))
 
 
+;;void SDL_DestroyTexture(SDL_Texture * texture);
+(define sdl-destroy-texture
+  (foreign-library-function "libSDL2" "SDL_DestroyTexture"
+                            #:return-type void
+                            #:arg-types (list '*)))
+
+
 
 ;;SDL_DestroyRenderer
 ;;void SDL_DestroyRenderer(SDL_Renderer * renderer);
@@ -2795,6 +2802,9 @@ need create a bytevector of size 16 , offset 0 = x ; offset 4 = y ; offset w = 8
 
 	   ;; some writing
 	   ;; SDL_Surface* textSurface = TTF_RenderText_Solid( gFont, textureText.c_str(), textColor );
+	   ;; should dfree old texture if still around
+	   (when (not (equal? mTexture %null-pointer))
+	     (sdl-destroy-texture mTexture))	   
 	   (set! mTexture %null-pointer)
 	   (set! mTexture-width 0)
 	   (set! mTexture-height 0)
