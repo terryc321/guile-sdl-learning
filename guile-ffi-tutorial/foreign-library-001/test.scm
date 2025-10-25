@@ -5,6 +5,63 @@
 ;;(load "pixelformat.scm")
 
 #|
+guile documentation local - so no network traffic delay
+===================================================
+full pdf
+/opt/guile/share/doc/guile/guile.pdf
+/opt/guile/share/doc/guile/r5rs.pdf
+
+/opt/guile/share/doc/guile/guile.html
+/opt/guile/share/doc/guile/r5rs.html
+
+definining hex values in guile scheme
+prefix is #x followed bby hexadecimal number
+#xFF is 255 decimal or FF in hex 
+
+
+*guile modules*
+================================================
+(define-module (math bessel)
+#:export (j0))
+
+
+guile extensions
+================================================
+extensions go into /usr/local/share/guile/site/ directory
+module called (math bessel)
+then the file will be /usr/local/share/guile/site/math/bessel.scm
+
+the shared library will go into directory /usr/local/lib/guile/3.0/extensions/
+so if our shared library called libguile-bessel
+full directory path will be /usr/local/lib/guile/3.0/extensions/libguile-bessel.so
+===================================================
+
+cat /usr/local/share/guile/site/math/bessel.scm
+
+(define-module (math bessel)
+#:export (j0))
+(load-extension "libguile-bessel" "init_bessel")
+
+file /usr/local/lib/guile/3.0/extensions/libguile-bessel.so
+... ELF 32-bit LSB shared object ...
+
+$ guile
+scheme@(guile-user)> (use-modules (math bessel))
+scheme@(guile-user)> (j0 2)
+$1 = 0.223890779141236
+
+how do we make this file modular
+- sdl2 routines
+- sdl2_ttf routines
+- sdl2_image library routines
+- cario routines [although not incorporated yet, still open to debate if can use on accelerated texture render]
+
+
+guile 2d arrays
+
+(make-array ’ho 2 3) => #2((ho ho ho)(ho ho ho))
+(array-ref #2((ho1 ho2 ho3)(ho4 ho5 ho6)) 1 1) => ho5
+
 
 guile sdl2 ffi file 
 
